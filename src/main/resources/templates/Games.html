@@ -1,0 +1,19 @@
+<!-- src/main/resources/templates/games.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>All Games</title>
+</head>
+<body>
+<h1>All Games</h1>
+<ul>
+    <li th:each="g : ${games}">
+        <a th:href="@{/games/{id}(id=${g.id})}" th:text="${g.title}">Game Title</a>
+        — <span th:text="${g.sport.name}">Sport</span>
+        @ <span th:text="${g.location.name}">Location</span>
+    </li>
+</ul>
+<button onclick="location.href='/'">Home</button>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <title th:text="${game.title}">Game Detail</title>
+</head>
+<body>
+
+<h1 th:text="${game.title}">Game Title</h1>
+
+<table border="1" cellpadding="4">
+  <tr><th>Sport</th>      <td th:text="${game.sport.name}">Sport</td></tr>
+  <tr><th>Location</th>   <td th:text="${game.location.name}">Location</td></tr>
+  <tr><th>Description</th><td th:text="${game.description}">Description</td></tr>
+  <tr><th>Capacity</th>   <td th:text="${game.capacity}">Capacity</td></tr>
+  <tr><th>Price pp</th>   <td th:text="${game.pricePerPerson}">Price</td></tr>
+  <tr><th>State</th>      <td th:text="${game.state}">State</td></tr>
+  <tr><th>Owner</th>      <td th:text="${game.owner.name}">Owner</td></tr>
+</table>
+
+<h2>Players</h2>
+<table border="1" cellpadding="4">
+  <thead>
+  <tr><th>#</th><th>Name</th><th>Login</th></tr>
+  </thead>
+  <tbody>
+  <tr th:each="p, stat : ${game.players}">
+    <td th:text="${stat.count}">1</td>
+    <td th:text="${p.name}">Player Name</td>
+    <td th:text="${p.login}">login</td>
+  </tr>
+  <tr th:if="${#lists.isEmpty(game.players)}">
+    <td colspan="3">No players yet</td>
+  </tr>
+  </tbody>
+</table>
+
+<div>
+    <span th:if="${currentUser != null}">
+      <form th:if="${!game.players.contains(currentUser)}"
+            th:action="@{/games/{id}/join(id=${game.id})}" method="post" style="display:inline">
+        <button type="submit">Join Game</button>
+      </form>
+      <form th:if="${game.players.contains(currentUser)}"
+            th:action="@{/games/{id}/resign(id=${game.id})}" method="post" style="display:inline">
+        <button type="submit">Resign Game</button>
+      </form>
+    </span>
+  <span th:if="${currentUser == null}">
+      <em>Please <a th:href="@{/login}">log in</a> to join or resign.</em>
+    </span>
+</div>
+
+<p><button type="button" onclick="location.href='/games'">← Back to Games</button></p>
+</body>
+</html>

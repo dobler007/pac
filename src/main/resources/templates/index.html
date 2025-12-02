@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>SportRadar – Home</title>
+  <link th:href="@{https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css}" rel="stylesheet"/>
+</head>
+<body>
+
+<nav class="navbar navbar-light bg-light">
+  <div class="container-fluid">
+    <span class="navbar-brand">SportRadar</span>
+    <div>
+      <span th:if="${currentUser != null}">
+        Welcome,
+        <a th:href="@{/profile}" class="btn btn-link p-0 align-baseline" th:text="${currentUser.name}">User</a>
+        !
+        <form th:action="@{/logout}" method="post" class="d-inline">
+          <button class="btn btn-outline-secondary btn-sm">Log Out</button>
+        </form>
+      </span>
+      <span th:if="${currentUser == null}">
+        <button class="btn btn-outline-primary btn-sm" onclick="location.href='/login'">Log In</button>
+        <button class="btn btn-outline-secondary btn-sm" onclick="location.href='/register'">Register</button>
+      </span>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-5 text-center">
+  <div class="btn-group" role="group">
+    <button class="btn btn-primary" onclick="location.href='/events'">Events</button>
+    <button class="btn btn-primary" onclick="location.href='/games'">Games</button>
+    <button class="btn btn-primary" onclick="location.href='/games/new'">Post Game</button>
+  </div>
+</div>
+
+<script th:src="@{https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

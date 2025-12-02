@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><title>Post Game</title></head>
+<body>
+<h1>Post Game</h1>
+<form th:action="@{/games}" method="post">
+    <label>Title:<input name="title"/></label><br/>
+    <label>Sport:
+        <select name="sportId" >
+            <option th:each="s : ${sports}"
+                    th:value="${s.id}"
+                    th:text="${s.name}">Sport</option>
+        </select>
+    </label><br/>
+    <label>Location:
+        <select name="locationId">
+            <option th:each="loc : ${locations}"
+                    th:value="${loc.id}"
+                    th:text="${loc.name}">Location</option>
+        </select>
+    </label><br/>
+    <label>Description:<textarea name="description"></textarea></label><br/>
+    <label>Capacity:<input type="number" name="capacity"/></label><br/>
+    <label>Price Per Person:<input type="number" name="pricePerPerson"/></label><br/>
+    <button type="submit">Create</button>
+</form>
+<button onclick="location.href='/games'">Back to Games</button>
+</body>
+</html>
