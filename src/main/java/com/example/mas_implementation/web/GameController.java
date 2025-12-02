@@ -1,9 +1,9 @@
 package com.example.mas_implementation.web;
 
 import com.example.mas_implementation.model.Game;
+import com.example.mas_implementation.model.Location;
 import com.example.mas_implementation.model.Player;
 import com.example.mas_implementation.model.Sport;
-import com.example.mas_implementation.model.Location;
 import com.example.mas_implementation.model.State;
 import com.example.mas_implementation.repository.PlayerRepository;
 import com.example.mas_implementation.repository.SportRepository;
@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/games")
@@ -48,7 +47,6 @@ public class GameController {
     @GetMapping("/new")
     public String showCreateForm(Model model) {
         model.addAttribute("sports", sportRepository.findAll());
-        model.addAttribute("locations", locationRepository.findAll());
         return "new_game";
     }
 
@@ -56,11 +54,10 @@ public class GameController {
     public String createGame(
             @RequestParam String title,
             @RequestParam Long sportId,
-            @RequestParam(required = false) Long locationId,
-            @RequestParam(required = false) String locationName,
-            @RequestParam(required = false) String address,
-            @RequestParam(required = false) Double latitude,
-            @RequestParam(required = false) Double longitude,
+            @RequestParam String locationName,
+            @RequestParam String address,
+            @RequestParam Double latitude,
+            @RequestParam Double longitude,
             @RequestParam String description,
             @RequestParam int capacity,
             @RequestParam(required = false) Integer pricePerPerson,
@@ -85,22 +82,12 @@ public class GameController {
         }
 
         // Location
-        Location location = null;
-
-        if (locationId != null) {
-            // Existing location
-            location = locationRepository.findById(locationId).orElseThrow();
-        } else if (address != null && !address.isBlank()) {
-            // New location
-            location = new Location();
-            location.setName(locationName != null ? locationName : "Custom Location");
-            String locAddress = address;
-            if (latitude != null && longitude != null) {
-                locAddress += " (" + latitude + ", " + longitude + ")";
-            }
-            location.setAddress(locAddress);
-            locationRepository.save(location); // ID auto-generated
-        }
+        Location location = new Location();
+        location.setName(locationName != null && !locationName.isBlank() ? locationName : "Custom Location");
+        location.setAddress(address);
+        location.setLatitude(latitude);
+        location.setLongitude(longitude);
+        locationRepository.save(location);
 
         game.setLocation(location);
 
@@ -113,7 +100,7 @@ public class GameController {
         Game game = gameService.findGameById(id);
         model.addAttribute("game", game);
 
-        // Add current user to model
+        // Current user
         Long currentId = (Long) session.getAttribute("currentUserId");
         if (currentId != null) {
             Player currentUser = playerRepository.findById(currentId).orElse(null);
@@ -124,7 +111,6 @@ public class GameController {
 
         return "game";
     }
-
 
     @PostMapping("/{id}/join")
     public String joinGame(@PathVariable Long id, HttpSession session) {

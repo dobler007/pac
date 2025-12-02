@@ -19,6 +19,9 @@ public class Location {
     private String name;
     private String address;
 
+    private Double latitude;
+    private Double longitude;
+
     @OneToMany(mappedBy = "location", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private Set<Game> games = new HashSet<>();
 

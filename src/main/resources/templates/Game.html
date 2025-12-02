@@ -3,93 +3,81 @@
 <head>
     <meta charset="UTF-8"/>
     <title th:text="${game.title}">Game Detail</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <link th:href="@{https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css}" rel="stylesheet"/>
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <style>
         #map { height: 400px; width: 100%; margin: 20px 0; }
     </style>
 </head>
 <body>
-<div class="container mt-4">
-    <h1 th:text="${game.title}">Game Title</h1>
 
-    <table class="table table-bordered">
-        <tr><th>Sport</th><td th:text="${game.sport.name}">Sport</td></tr>
-        <tr><th>Location</th><td th:text="${game.location.name}">Location</td></tr>
-        <tr><th>Description</th><td th:text="${game.description}">Description</td></tr>
-        <tr><th>Capacity</th><td th:text="${game.capacity}">Capacity</td></tr>
-        <tr><th>Price pp</th><td th:text="${game.pricePerPerson}">Price</td></tr>
-        <tr><th>State</th><td th:text="${game.state}">State</td></tr>
-        <tr><th>Owner</th><td th:text="${game.owner.name}">Owner</td></tr>
-    </table>
+<h1 th:text="${game.title}">Game Title</h1>
 
-    <h2>Players</h2>
-    <table class="table table-bordered">
-        <thead>
-        <tr><th>#</th><th>Name</th><th>Login</th></tr>
-        </thead>
-        <tbody>
-        <tr th:each="p, stat : ${game.players}">
-            <td th:text="${stat.count}">1</td>
-            <td th:text="${p.name}">Player Name</td>
-            <td th:text="${p.login}">login</td>
-        </tr>
-        <tr th:if="${#lists.isEmpty(game.players)}">
-            <td colspan="3">No players yet</td>
-        </tr>
-        </tbody>
-    </table>
+<table border="1" cellpadding="4">
+    <tr><th>Sport</th><td th:text="${game.sport.name}">Sport</td></tr>
+    <tr><th>Location</th><td th:text="${game.location.name}">Location</td></tr>
+    <tr><th>Address</th><td th:text="${game.location.address}">Address</td></tr>
+    <tr><th>Description</th><td th:text="${game.description}">Description</td></tr>
+    <tr><th>Capacity</th><td th:text="${game.capacity}">Capacity</td></tr>
+    <tr><th>Price pp</th><td th:text="${game.pricePerPerson}">Price</td></tr>
+    <tr><th>State</th><td th:text="${game.state}">State</td></tr>
+    <tr><th>Owner</th><td th:text="${game.owner.name}">Owner</td></tr>
+</table>
 
-    <div id="map"></div>
+<h2>Players</h2>
+<table border="1" cellpadding="4">
+    <thead>
+    <tr><th>#</th><th>Name</th><th>Login</th></tr>
+    </thead>
+    <tbody>
+    <tr th:each="p, stat : ${game.players}">
+        <td th:text="${stat.count}">1</td>
+        <td th:text="${p.name}">Player Name</td>
+        <td th:text="${p.login}">login</td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(game.players)}">
+        <td colspan="3">No players yet</td>
+    </tr>
+    </tbody>
+</table>
 
-    <div class="mb-3">
-        <span th:if="${currentUser != null}">
-            <form th:if="${!game.players.contains(currentUser)}"
-                  th:action="@{/games/{id}/join(id=${game.id})}" method="post" style="display:inline">
-                <button type="submit" class="btn btn-success">Join Game</button>
-            </form>
-            <form th:if="${game.players.contains(currentUser)}"
-                  th:action="@{/games/{id}/resign(id=${game.id})}" method="post" style="display:inline">
-                <button type="submit" class="btn btn-danger">Resign Game</button>
-            </form>
-        </span>
-        <span th:if="${currentUser == null}">
-            <em>Please <a th:href="@{/login}">log in</a> to join or resign.</em>
-        </span>
-    </div>
+<div id="map"></div>
 
-    <p><button type="button" class="btn btn-secondary" onclick="location.href='/games'">← Back to Games</button></p>
+<div>
+    <span th:if="${currentUser != null}">
+        <form th:if="${!game.players.contains(currentUser)}"
+              th:action="@{/games/{id}/join(id=${game.id})}" method="post" style="display:inline">
+            <button type="submit">Join Game</button>
+        </form>
+        <form th:if="${game.players.contains(currentUser)}"
+              th:action="@{/games/{id}/resign(id=${game.id})}" method="post" style="display:inline">
+            <button type="submit">Resign Game</button>
+        </form>
+    </span>
+    <span th:if="${currentUser == null}">
+        <em>Please <a th:href="@{/login}">log in</a> to join or resign.</em>
+    </span>
 </div>
+
+<p><button type="button" onclick="location.href='/games'">← Back to Games</button></p>
 
 <script th:inline="javascript">
     /*<![CDATA[*/
-    let city = /*[[${session.city != null ? session.city : 'Warsaw'}]]*/ 'Warsaw';
-    let gameAddress = /*[[${game.location.address}]]*/ '';
-    if (gameAddress) {
-        const fullAddress = gameAddress + ', ' + city;
-        const map = new google.maps.Map(document.getElementById("map"), {
-            zoom: 15,
-            center: {lat: 52.2297, lng: 21.0122} // Warsaw default
-        });
-        const geocoder = new google.maps.Geocoder();
-        geocoder.geocode({ address: fullAddress }, function(results, status) {
-            if (status === 'OK') {
-                map.setCenter(results[0].geometry.location);
-                new google.maps.Marker({
-                    map: map,
-                    position: results[0].geometry.location
-                });
-            } else {
-                console.error('Geocode failed: ' + status);
-            }
-        });
-    } else {
-        document.getElementById("map").innerHTML = 'No location available';
-    }
+    const lat = [[${game.location.latitude}]];
+    const lng = [[${game.location.longitude}]];
+    const locName = [[${#strings.escapeJavaScript(game.location.name)}]];
+
+    const map = L.map('map').setView([lat, lng], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    L.marker([lat, lng]).addTo(map)
+        .bindPopup(locName)
+        .openPopup();
     /*]]>*/
 </script>
 
-<script th:src="@{https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js}"></script>
 </body>
 </html>
