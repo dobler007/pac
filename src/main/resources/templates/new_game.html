@@ -1,29 +1,77 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head><title>Post Game</title></head>
+<head>
+    <meta charset="UTF-8"/>
+    <title>Post Game</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+        #map { height: 400px; width: 100%; margin-bottom: 10px; }
+    </style>
+</head>
 <body>
 <h1>Post Game</h1>
+
 <form th:action="@{/games}" method="post">
     <label>Title:<input name="title"/></label><br/>
+
     <label>Sport:
-        <select name="sportId" >
-            <option th:each="s : ${sports}"
-                    th:value="${s.id}"
-                    th:text="${s.name}">Sport</option>
+        <select name="sportId">
+            <option th:each="s : ${sports}" th:value="${s.id}" th:text="${s.name}">Sport</option>
         </select>
     </label><br/>
-    <label>Location:
-        <select name="locationId">
-            <option th:each="loc : ${locations}"
-                    th:value="${loc.id}"
-                    th:text="${loc.name}">Location</option>
-        </select>
-    </label><br/>
+
+    <label>Location Name:<input name="locationName" placeholder="e.g., Central Park"/></label><br/>
+    <label>Address:<input type="text" name="address" id="address" placeholder="Enter address"/></label><br/>
+
+    <div id="map"></div>
+
+    <!-- hidden fields to store selected coordinates -->
+    <input type="hidden" name="latitude" id="latitude"/>
+    <input type="hidden" name="longitude" id="longitude"/>
+
     <label>Description:<textarea name="description"></textarea></label><br/>
     <label>Capacity:<input type="number" name="capacity"/></label><br/>
     <label>Price Per Person:<input type="number" name="pricePerPerson"/></label><br/>
+
     <button type="submit">Create</button>
 </form>
+
 <button onclick="location.href='/games'">Back to Games</button>
+
+<script>
+    const map = L.map('map').setView([52.2297, 21.0122], 13); // default to Warsaw
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    let marker;
+
+    // click on map to select location
+    map.on('click', function(e) {
+        const { lat, lng } = e.latlng;
+        if (marker) map.removeLayer(marker);
+        marker = L.marker([lat, lng]).addTo(map);
+        document.getElementById('latitude').value = lat;
+        document.getElementById('longitude').value = lng;
+    });
+
+    // geocode address input
+    document.getElementById('address').addEventListener('change', async function() {
+        const addr = this.value;
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addr)}`);
+        const data = await res.json();
+        if (data.length > 0) {
+            const { lat, lon } = data[0];
+            map.setView([lat, lon], 15);
+            if (marker) map.removeLayer(marker);
+            marker = L.marker([lat, lon]).addTo(map);
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lon;
+        }
+    });
+</script>
+
 </body>
 </html>

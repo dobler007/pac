@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/games")
@@ -55,7 +56,11 @@ public class GameController {
     public String createGame(
             @RequestParam String title,
             @RequestParam Long sportId,
-            @RequestParam Long locationId,
+            @RequestParam(required = false) Long locationId,
+            @RequestParam(required = false) String locationName,
+            @RequestParam(required = false) String address,
+            @RequestParam(required = false) Double latitude,
+            @RequestParam(required = false) Double longitude,
             @RequestParam String description,
             @RequestParam int capacity,
             @RequestParam(required = false) Integer pricePerPerson,
@@ -64,7 +69,6 @@ public class GameController {
         Game game = new Game();
         game.setTitle(title);
         game.setSport(sportRepository.findById(sportId).orElseThrow());
-        game.setLocation(locationRepository.findById(locationId).orElseThrow());
         game.setDescription(description);
         game.setCapacity(capacity);
         game.setPricePerPerson(pricePerPerson);
@@ -72,24 +76,55 @@ public class GameController {
         game.setStartTime(LocalDateTime.now());
         game.setState(State.UPCOMING);
 
+        // Owner
         Long currentId = (Long) session.getAttribute("currentUserId");
         if (currentId != null) {
             Player owner = playerRepository.findById(currentId).orElse(null);
             game.setOwner(owner);
-            game.getPlayers().add(owner);  // ensure owner is also a participant
+            game.getPlayers().add(owner);
         }
+
+        // Location
+        Location location = null;
+
+        if (locationId != null) {
+            // Existing location
+            location = locationRepository.findById(locationId).orElseThrow();
+        } else if (address != null && !address.isBlank()) {
+            // New location
+            location = new Location();
+            location.setName(locationName != null ? locationName : "Custom Location");
+            String locAddress = address;
+            if (latitude != null && longitude != null) {
+                locAddress += " (" + latitude + ", " + longitude + ")";
+            }
+            location.setAddress(locAddress);
+            locationRepository.save(location); // ID auto-generated
+        }
+
+        game.setLocation(location);
 
         gameService.saveGame(game);
         return "redirect:/games";
     }
 
     @GetMapping("/{id}")
-    public String gameDetail(@PathVariable Long id, Model model) {
+    public String gameDetail(@PathVariable Long id, Model model, HttpSession session) {
         Game game = gameService.findGameById(id);
         model.addAttribute("game", game);
-        // currentUser is already in the model via CurrentUserAdvice
+
+        // Add current user to model
+        Long currentId = (Long) session.getAttribute("currentUserId");
+        if (currentId != null) {
+            Player currentUser = playerRepository.findById(currentId).orElse(null);
+            model.addAttribute("currentUser", currentUser);
+        } else {
+            model.addAttribute("currentUser", null);
+        }
+
         return "game";
     }
+
 
     @PostMapping("/{id}/join")
     public String joinGame(@PathVariable Long id, HttpSession session) {
