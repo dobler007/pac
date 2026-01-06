@@ -17,22 +17,40 @@
     <tr><th>Sport</th><td th:text="${game.sport.name}">Sport</td></tr>
     <tr><th>Location</th><td th:text="${game.location.name}">Location</td></tr>
     <tr><th>Address</th><td th:text="${game.location.address}">Address</td></tr>
+    <tr><th>Date</th><td th:text="${game.startDate}">Date</td></tr>
+    <tr><th>Time</th><td th:text="${#temporals.format(game.startTime, 'HH:mm')}">Time</td></tr>
     <tr><th>Description</th><td th:text="${game.description}">Description</td></tr>
     <tr><th>Capacity</th><td th:text="${game.capacity}">Capacity</td></tr>
     <tr><th>Price pp</th><td th:text="${game.pricePerPerson}">Price</td></tr>
     <tr><th>State</th><td th:text="${game.state}">State</td></tr>
-    <tr><th>Owner</th><td th:text="${game.owner.name}">Owner</td></tr>
+    <tr><th>Owner</th>
+        <td>
+            <a th:href="@{/players/{id}(id=${game.owner.id})}"
+               th:text="${game.owner.name}">
+                Owner
+            </a>
+        </td>
+    </tr>
 </table>
 
 <h2>Players</h2>
 <table border="1" cellpadding="4">
     <thead>
-    <tr><th>#</th><th>Name</th><th>Login</th></tr>
+    <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Login</th>
+    </tr>
     </thead>
     <tbody>
     <tr th:each="p, stat : ${game.players}">
         <td th:text="${stat.count}">1</td>
-        <td th:text="${p.name}">Player Name</td>
+        <td>
+            <a th:href="@{/players/{id}(id=${p.id})}"
+               th:text="${p.name}">
+                Player Name
+            </a>
+        </td>
         <td th:text="${p.login}">login</td>
     </tr>
     <tr th:if="${#lists.isEmpty(game.players)}">
@@ -46,20 +64,28 @@
 <div>
     <span th:if="${currentUser != null}">
         <form th:if="${!game.players.contains(currentUser)}"
-              th:action="@{/games/{id}/join(id=${game.id})}" method="post" style="display:inline">
+              th:action="@{/games/{id}/join(id=${game.id})}"
+              method="post"
+              style="display:inline">
             <button type="submit">Join Game</button>
         </form>
+
         <form th:if="${game.players.contains(currentUser)}"
-              th:action="@{/games/{id}/resign(id=${game.id})}" method="post" style="display:inline">
+              th:action="@{/games/{id}/resign(id=${game.id})}"
+              method="post"
+              style="display:inline">
             <button type="submit">Resign Game</button>
         </form>
     </span>
+
     <span th:if="${currentUser == null}">
         <em>Please <a th:href="@{/login}">log in</a> to join or resign.</em>
     </span>
 </div>
 
-<p><button type="button" onclick="location.href='/games'">← Back to Games</button></p>
+<p>
+    <button type="button" onclick="location.href='/games'">← Back to Games</button>
+</p>
 
 <script th:inline="javascript">
     /*<![CDATA[*/

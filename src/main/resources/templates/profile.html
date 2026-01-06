@@ -8,16 +8,72 @@
 <body class="container py-4">
 
 <h1 th:text="${player.name}">Player Name</h1>
-<p><strong>Username:</strong> <span th:text="${player.login}"/></p>
-<p><strong>Email:</strong> <span th:text="${player.email}"/></p>
-<p><strong>Age:</strong> <span th:text="${age}"/> years</p>
-<p><strong>Avg. Skill:</strong> <span th:text="${avgSkill}"/> ★</p>
-<p><strong>Avg. Behavior:</strong> <span th:text="${avgBehavior}"/> ★</p>
+
+<p><strong>Username:</strong> <span th:text="${player.login}"></span></p>
+<p><strong>Email:</strong> <span th:text="${player.email}"></span></p>
+<p><strong>Age:</strong> <span th:text="${age}"></span> years</p>
+<p><strong>Avg. Skill:</strong> <span th:text="${avgSkill}"></span> ★</p>
+<p><strong>Avg. Behavior:</strong> <span th:text="${avgBehavior}"></span> ★</p>
+
+<hr/>
+
+<p><strong>Profile link:</strong></p>
+<input type="text"
+       class="form-control mb-2"
+       th:value="${profileLink}"
+       readonly/>
+
+<button class="btn btn-outline-primary mb-4"
+        onclick="navigator.clipboard.writeText(window.location.href)">
+    Copy profile link
+</button>
+
+<div th:if="${currentUser != null and currentUser.id != player.id}">
+    <form th:action="@{/players/{id}/rate(id=${player.id})}"
+          method="post"
+          class="card p-3 mb-4">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Skill (1–5)</label>
+                <select name="skill" class="form-select" required>
+                    <option th:each="i : ${#numbers.sequence(1,5)}"
+                            th:value="${i}"
+                            th:text="${i}"
+                            th:selected="${existingSkill != null and existingSkill == i}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Behavior (1–5)</label>
+                <select name="behavior" class="form-select" required>
+                    <option th:each="i : ${#numbers.sequence(1,5)}"
+                            th:value="${i}"
+                            th:text="${i}"
+                            th:selected="${existingBehavior != null and existingBehavior == i}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100"
+                        th:text="${alreadyRated} ? 'Update rating' : 'Submit rating'">
+                    Submit rating
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
 
 <h2 class="mt-4">Games Joined</h2>
 <table class="table table-striped">
     <thead>
-    <tr><th>#</th><th>Title</th><th>Sport</th><th>Action</th></tr>
+    <tr>
+        <th>#</th>
+        <th>Title</th>
+        <th>Sport</th>
+        <th>Action</th>
+    </tr>
     </thead>
     <tbody>
     <tr th:each="g,iter : ${games}">
@@ -35,6 +91,7 @@
 </table>
 
 <button class="btn btn-link" onclick="location.href='/'">← Home</button>
+
 <script th:src="@{https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js}"></script>
 </body>
 </html>

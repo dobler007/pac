@@ -9,4 +9,6 @@ public interface GameService {
     void joinGame(Long gameId, Long playerId);
     void resignGame(Long gameId, Long playerId);
     Game saveGame(Game game);
+    List<Game> findUpcomingGames();
+
 }

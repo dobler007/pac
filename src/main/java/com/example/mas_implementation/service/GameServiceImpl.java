@@ -22,7 +22,10 @@ public class GameServiceImpl implements GameService {
         this.gameRepository = gameRepository;
         this.playerRepository = playerRepository;
     }
-
+    @Override
+    public List<Game> findUpcomingGames() {
+        return gameRepository.findUpcomingGames();
+    }
     @Override
     public List<Game> findAllGames() {
         return (List<Game>) gameRepository.findAll();

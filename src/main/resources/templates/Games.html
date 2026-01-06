@@ -1,4 +1,3 @@
-<!-- src/main/resources/templates/games.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -6,14 +5,30 @@
     <title>All Games</title>
 </head>
 <body>
-<h1>All Games</h1>
+
+<h1>Upcoming Games</h1>
+
 <ul>
     <li th:each="g : ${games}">
-        <a th:href="@{/games/{id}(id=${g.id})}" th:text="${g.title}">Game Title</a>
+        <a th:href="@{/games/{id}(id=${g.id})}"
+           th:text="${g.title}">Game Title</a>
+
         — <span th:text="${g.sport.name}">Sport</span>
+
         @ <span th:text="${g.location.name}">Location</span>
+
+        <br/>
+
+        📅 <span th:text="${g.startDate}">2025-01-01</span>
+        ⏰ <span th:text="${#temporals.format(g.startTime, 'HH:mm')}">18:00</span>
     </li>
 </ul>
+
+<p th:if="${#lists.isEmpty(games)}">
+    No upcoming games.
+</p>
+
 <button onclick="location.href='/'">Home</button>
+
 </body>
 </html>

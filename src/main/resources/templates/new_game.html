@@ -10,29 +10,56 @@
     </style>
 </head>
 <body>
+
 <h1>Post Game</h1>
 
 <form th:action="@{/games}" method="post">
-    <label>Title:<input name="title" required/></label><br/>
+
+    <label>Title:
+        <input name="title" required/>
+    </label><br/>
 
     <label>Sport:
-        <select name="sportId">
-            <option th:each="s : ${sports}" th:value="${s.id}" th:text="${s.name}"></option>
+        <select name="sportId" required>
+            <option th:each="s : ${sports}"
+                    th:value="${s.id}"
+                    th:text="${s.name}">
+            </option>
         </select>
     </label><br/>
 
-    <label>Location Name:<input name="locationName" placeholder="e.g., Central Park" required/></label><br/>
-    <label>Address:<input type="text" name="address" id="address" placeholder="Enter address" required/></label><br/>
+    <label>Game Date:
+        <input type="date" name="startDate" required/>
+    </label><br/>
+
+    <label>Game Time:
+        <input type="time" name="startTime" required/>
+    </label><br/>
+
+    <label>Location Name:
+        <input name="locationName" placeholder="e.g., Central Park" required/>
+    </label><br/>
+
+    <label>Address:
+        <input type="text" name="address" id="address" placeholder="Enter address" required/>
+    </label><br/>
 
     <div id="map"></div>
 
-    <!-- hidden fields to store selected coordinates -->
     <input type="hidden" name="latitude" id="latitude" required/>
     <input type="hidden" name="longitude" id="longitude" required/>
 
-    <label>Description:<textarea name="description"></textarea></label><br/>
-    <label>Capacity:<input type="number" name="capacity" required/></label><br/>
-    <label>Price Per Person:<input type="number" name="pricePerPerson"/></label><br/>
+    <label>Description:
+        <textarea name="description"></textarea>
+    </label><br/>
+
+    <label>Capacity:
+        <input type="number" name="capacity" required/>
+    </label><br/>
+
+    <label>Price Per Person:
+        <input type="number" name="pricePerPerson"/>
+    </label><br/>
 
     <button type="submit">Create</button>
 </form>
@@ -40,7 +67,7 @@
 <button onclick="location.href='/games'">Back to Games</button>
 
 <script>
-    const map = L.map('map').setView([52.2297, 21.0122], 13); // default Warsaw
+    const map = L.map('map').setView([52.2297, 21.0122], 13);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
@@ -48,7 +75,6 @@
 
     let marker;
 
-    // click on map to select location
     map.on('click', function(e) {
         const { lat, lng } = e.latlng;
         if (marker) map.removeLayer(marker);
@@ -57,7 +83,6 @@
         document.getElementById('longitude').value = lng;
     });
 
-    // optional: geocode address input
     document.getElementById('address').addEventListener('change', async function() {
         const addr = this.value;
         const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addr)}`);
@@ -72,5 +97,6 @@
         }
     });
 </script>
+
 </body>
 </html>

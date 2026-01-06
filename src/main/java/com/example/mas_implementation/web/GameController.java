@@ -3,11 +3,11 @@ package com.example.mas_implementation.web;
 import com.example.mas_implementation.model.Game;
 import com.example.mas_implementation.model.Location;
 import com.example.mas_implementation.model.Player;
-import com.example.mas_implementation.model.Sport;
 import com.example.mas_implementation.model.State;
+import com.example.mas_implementation.repository.GameRepository;
+import com.example.mas_implementation.repository.LocationRepository;
 import com.example.mas_implementation.repository.PlayerRepository;
 import com.example.mas_implementation.repository.SportRepository;
-import com.example.mas_implementation.repository.LocationRepository;
 import com.example.mas_implementation.service.GameService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 @Controller
@@ -26,20 +27,23 @@ public class GameController {
     private final PlayerRepository playerRepository;
     private final SportRepository sportRepository;
     private final LocationRepository locationRepository;
+    private final GameRepository gameRepository;
 
     public GameController(GameService gameService,
                           PlayerRepository playerRepository,
                           SportRepository sportRepository,
-                          LocationRepository locationRepository) {
+                          LocationRepository locationRepository,
+                          GameRepository gameRepository) {
         this.gameService = gameService;
         this.playerRepository = playerRepository;
         this.sportRepository = sportRepository;
         this.locationRepository = locationRepository;
+        this.gameRepository = gameRepository;
     }
 
     @GetMapping
     public String listGames(Model model) {
-        List<Game> games = gameService.findAllGames();
+        List<Game> games = gameService.findUpcomingGames();
         model.addAttribute("games", games);
         return "games";
     }
@@ -61,6 +65,8 @@ public class GameController {
             @RequestParam String description,
             @RequestParam int capacity,
             @RequestParam(required = false) Integer pricePerPerson,
+            @RequestParam LocalDate startDate,
+            @RequestParam LocalTime startTime,
             HttpSession session
     ) {
         Game game = new Game();
@@ -69,19 +75,20 @@ public class GameController {
         game.setDescription(description);
         game.setCapacity(capacity);
         game.setPricePerPerson(pricePerPerson);
-        game.setStartDate(LocalDate.now());
-        game.setStartTime(LocalDateTime.now());
+
+        game.setStartDate(startDate);
+        game.setStartTime(LocalDateTime.of(startDate, startTime));
         game.setState(State.UPCOMING);
 
-        // Owner
         Long currentId = (Long) session.getAttribute("currentUserId");
         if (currentId != null) {
             Player owner = playerRepository.findById(currentId).orElse(null);
             game.setOwner(owner);
-            game.getPlayers().add(owner);
+            if (owner != null) {
+                game.getPlayers().add(owner);
+            }
         }
 
-        // Location
         Location location = new Location();
         location.setName(locationName != null && !locationName.isBlank() ? locationName : "Custom Location");
         location.setAddress(address);
@@ -100,7 +107,6 @@ public class GameController {
         Game game = gameService.findGameById(id);
         model.addAttribute("game", game);
 
-        // Current user
         Long currentId = (Long) session.getAttribute("currentUserId");
         if (currentId != null) {
             Player currentUser = playerRepository.findById(currentId).orElse(null);
