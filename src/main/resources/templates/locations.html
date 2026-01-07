@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Locations</title>
+    <link th:href="@{https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css}" rel="stylesheet"/>
+</head>
+<body class="container py-4">
+
+<h1>Locations</h1>
+
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Address</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="l,iter : ${locations}">
+        <td th:text="${iter.count}">1</td>
+        <td th:text="${l.name}">Name</td>
+        <td th:text="${l.address}">Address</td>
+        <td><a th:href="@{/locations/{id}(id=${l.id})}">View</a></td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(locations)}">
+        <td colspan="4">No locations yet.</td>
+    </tr>
+    </tbody>
+</table>
+
+<button class="btn btn-link" onclick="location.href='/'">← Home</button>
+
+<script th:src="@{https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

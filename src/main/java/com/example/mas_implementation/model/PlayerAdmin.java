@@ -14,6 +14,9 @@ import lombok.experimental.SuperBuilder;
 public class PlayerAdmin extends Player implements IAdmin {
     private double discount;
 
+    private int experience;
+
+    private String responsibilities;
     @Override
     public void deleteReview() {}
 

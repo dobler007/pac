@@ -36,18 +36,32 @@
         <input type="time" name="startTime" required/>
     </label><br/>
 
-    <label>Location Name:
-        <input name="locationName" placeholder="e.g., Central Park" required/>
+    <hr/>
+
+    <label>Choose existing location (optional):
+        <select name="locationId" id="locationId">
+            <option value="">-- Custom (type address below) --</option>
+            <option th:each="l : ${locations}"
+                    th:value="${l.id}"
+                    th:text="${l.name} + ' — ' + ${l.address}">
+            </option>
+        </select>
     </label><br/>
 
-    <label>Address:
-        <input type="text" name="address" id="address" placeholder="Enter address" required/>
-    </label><br/>
+    <div id="customLocationBlock">
+        <label>Location Name:
+            <input name="locationName" id="locationName" placeholder="e.g., Central Park"/>
+        </label><br/>
 
-    <div id="map"></div>
+        <label>Address:
+            <input type="text" name="address" id="address" placeholder="Enter address"/>
+        </label><br/>
 
-    <input type="hidden" name="latitude" id="latitude" required/>
-    <input type="hidden" name="longitude" id="longitude" required/>
+        <div id="map"></div>
+
+        <input type="hidden" name="latitude" id="latitude"/>
+        <input type="hidden" name="longitude" id="longitude"/>
+    </div>
 
     <label>Description:
         <textarea name="description"></textarea>
@@ -67,6 +81,30 @@
 <button onclick="location.href='/games'">Back to Games</button>
 
 <script>
+    const locationSelect = document.getElementById('locationId');
+    const customBlock = document.getElementById('customLocationBlock');
+
+    const locationNameInput = document.getElementById('locationName');
+    const addressInput = document.getElementById('address');
+    const latInput = document.getElementById('latitude');
+    const lngInput = document.getElementById('longitude');
+
+    function setCustomRequired(on) {
+        locationNameInput.required = on;
+        addressInput.required = on;
+        latInput.required = on;
+        lngInput.required = on;
+    }
+
+    function toggleCustomBlock() {
+        const usingExisting = locationSelect.value && locationSelect.value.trim() !== "";
+        customBlock.style.display = usingExisting ? 'none' : 'block';
+        setCustomRequired(!usingExisting);
+    }
+
+    toggleCustomBlock();
+    locationSelect.addEventListener('change', toggleCustomBlock);
+
     const map = L.map('map').setView([52.2297, 21.0122], 13);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -79,11 +117,11 @@
         const { lat, lng } = e.latlng;
         if (marker) map.removeLayer(marker);
         marker = L.marker([lat, lng]).addTo(map);
-        document.getElementById('latitude').value = lat;
-        document.getElementById('longitude').value = lng;
+        latInput.value = lat;
+        lngInput.value = lng;
     });
 
-    document.getElementById('address').addEventListener('change', async function() {
+    addressInput.addEventListener('change', async function() {
         const addr = this.value;
         const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addr)}`);
         const data = await res.json();
@@ -92,8 +130,8 @@
             map.setView([lat, lon], 15);
             if (marker) map.removeLayer(marker);
             marker = L.marker([lat, lon]).addTo(map);
-            document.getElementById('latitude').value = lat;
-            document.getElementById('longitude').value = lon;
+            latInput.value = lat;
+            lngInput.value = lon;
         }
     });
 </script>

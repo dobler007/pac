@@ -4,8 +4,9 @@ import com.example.mas_implementation.model.Player;
 import com.example.mas_implementation.repository.PlayerRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 @Controller
 public class AuthController {
@@ -27,15 +28,25 @@ public class AuthController {
             @RequestParam String password,
             @RequestParam String name,
             @RequestParam String email,
+            @RequestParam String phoneNumber,
+            @RequestParam LocalDate birthdate,
             HttpSession session
     ) {
+        if (playerRepo.findByLogin(login).isPresent()) {
+            return "redirect:/register";
+        }
+
         Player player = new Player();
-        player.setLogin(login);
+        player.setLogin(login.trim());
         player.setPassword(password);
-        player.setName(name);
-        player.setEmail(email);
+        player.setName(name.trim());
+        player.setEmail(email.trim());
+        player.setPhoneNumber(phoneNumber.trim());
+        player.setBirthdate(birthdate);
+
         playerRepo.save(player);
         session.setAttribute("currentUserId", player.getId());
+
         return "redirect:/";
     }
 

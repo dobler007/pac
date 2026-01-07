@@ -51,6 +51,7 @@ public class GameController {
     @GetMapping("/new")
     public String showCreateForm(Model model) {
         model.addAttribute("sports", sportRepository.findAll());
+        model.addAttribute("locations", locationRepository.findAll());
         return "new_game";
     }
 
@@ -58,10 +59,13 @@ public class GameController {
     public String createGame(
             @RequestParam String title,
             @RequestParam Long sportId,
-            @RequestParam String locationName,
-            @RequestParam String address,
-            @RequestParam Double latitude,
-            @RequestParam Double longitude,
+
+            @RequestParam(required = false) Long locationId,
+            @RequestParam(required = false) String locationName,
+            @RequestParam(required = false) String address,
+            @RequestParam(required = false) Double latitude,
+            @RequestParam(required = false) Double longitude,
+
             @RequestParam String description,
             @RequestParam int capacity,
             @RequestParam(required = false) Integer pricePerPerson,
@@ -89,12 +93,22 @@ public class GameController {
             }
         }
 
-        Location location = new Location();
-        location.setName(locationName != null && !locationName.isBlank() ? locationName : "Custom Location");
-        location.setAddress(address);
-        location.setLatitude(latitude);
-        location.setLongitude(longitude);
-        locationRepository.save(location);
+        Location location;
+        if (locationId != null) {
+            location = locationRepository.findById(locationId).orElse(null);
+            if (location == null) return "redirect:/games/new";
+        } else {
+            if (locationName == null || locationName.isBlank()) return "redirect:/games/new";
+            if (address == null || address.isBlank()) return "redirect:/games/new";
+            if (latitude == null || longitude == null) return "redirect:/games/new";
+
+            location = new Location();
+            location.setName(locationName != null && !locationName.isBlank() ? locationName : "Custom Location");
+            location.setAddress(address);
+            location.setLatitude(latitude);
+            location.setLongitude(longitude);
+            locationRepository.save(location);
+        }
 
         game.setLocation(location);
 
