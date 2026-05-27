@@ -1,13 +1,39 @@
 <!DOCTYPE html>
-<html>
-<head><title>Log In</title></head>
-<body>
-<h1>Log In</h1>
-<form action="/login" method="post">
-  <input name="login" placeholder="Username"/><br/>
-  <input name="password" type="password" placeholder="Password"/><br/>
-  <button type="submit">Log In</button>
-</form>
-<button onclick="location.href='/'">Back</button>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Log In – SportRadar</title>
+    <link rel="stylesheet" th:href="@{/css/Style.css}">
+</head>
+<body class="auth-wrap">
+
+<nav class="navbar green">
+    <a class="navbar-brand" href="/">SportRadar</a>
+</nav>
+
+<div class="auth-body">
+    <div class="auth-card">
+        <div class="auth-logo">Welcome back 👋</div>
+        <p class="auth-subtitle">Log in to join or create games</p>
+
+        <form action="/login" method="post">
+            <div class="field">
+                <label>Username</label>
+                <input name="login" placeholder="your_username" required/>
+            </div>
+            <div class="field">
+                <label>Password</label>
+                <input name="password" type="password" placeholder="••••••••" required/>
+            </div>
+            <button class="btn-submit green" type="submit">Log In</button>
+        </form>
+
+        <p class="auth-footer">
+            No account? <a href="/register">Register here</a>
+        </p>
+    </div>
+</div>
+
 </body>
 </html>

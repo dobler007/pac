@@ -2,42 +2,62 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <title>Register</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Register – SportRadar</title>
+    <link rel="stylesheet" th:href="@{/css/Style.css}">
 </head>
-<body>
+<body class="auth-wrap">
 
-<h1>Register</h1>
+<nav class="navbar green">
+    <a class="navbar-brand" href="/">SportRadar</a>
+</nav>
 
-<form action="/register" method="post">
+<div class="auth-body">
+    <div class="auth-card" style="max-width:520px">
+        <div class="auth-logo">Create account 🏃</div>
+        <p class="auth-subtitle">Join SportRadar and start playing</p>
 
-    <label>Username:
-        <input name="login" required minlength="2" maxlength="20"/>
-    </label><br/>
+        <form action="/register" method="post">
+            <div class="form-row">
+                <div class="field">
+                    <label>Username</label>
+                    <input name="login" required minlength="2" maxlength="20" placeholder="cool_player"/>
+                </div>
+                <div class="field">
+                    <label>Password</label>
+                    <input name="password" type="password" required minlength="2" placeholder="••••••••"/>
+                </div>
+            </div>
 
-    <label>Password:
-        <input name="password" type="password" required minlength="2"/>
-    </label><br/>
+            <div class="field">
+                <label>Full name</label>
+                <input name="name" required placeholder="Jan Kowalski"/>
+            </div>
 
-    <label>Full name:
-        <input name="name" required/>
-    </label><br/>
+            <div class="form-row">
+                <div class="field">
+                    <label>Email</label>
+                    <input name="email" type="email" required placeholder="jan@email.com"/>
+                </div>
+                <div class="field">
+                    <label>Phone number</label>
+                    <input name="phoneNumber" required minlength="3" placeholder="+48 000 000 000"/>
+                </div>
+            </div>
 
-    <label>Email:
-        <input name="email" type="email" required/>
-    </label><br/>
+            <div class="field">
+                <label>Date of birth</label>
+                <input name="birthdate" type="date" required/>
+            </div>
 
-    <label>Phone number:
-        <input name="phoneNumber" required minlength="3"/>
-    </label><br/>
+            <button class="btn-submit green" type="submit">Create Account</button>
+        </form>
 
-    <label>Date of birth:
-        <input name="birthdate" type="date" required/>
-    </label><br/><br/>
-
-    <button type="submit">Register</button>
-</form>
-
-<button onclick="location.href='/'">Back</button>
+        <p class="auth-footer">
+            Already have an account? <a href="/login">Log in</a>
+        </p>
+    </div>
+</div>
 
 </body>
 </html>

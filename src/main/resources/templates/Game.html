@@ -2,108 +2,139 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <title th:text="${game.title}">Game Detail</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title th:text="${game.title} + ' – SportRadar'">Game</title>
+    <link rel="stylesheet" th:href="@{/css/Style.css}">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <style>
-        #map { height: 400px; width: 100%; margin: 20px 0; }
-    </style>
 </head>
 <body>
 
-<h1 th:text="${game.title}">Game Title</h1>
-
-<table border="1" cellpadding="4">
-    <tr><th>Sport</th><td th:text="${game.sport.name}">Sport</td></tr>
-    <tr><th>Location</th><td th:text="${game.location.name}">Location</td></tr>
-    <tr><th>Address</th><td th:text="${game.location.address}">Address</td></tr>
-    <tr><th>Date</th><td th:text="${game.startDate}">Date</td></tr>
-    <tr><th>Time</th><td th:text="${#temporals.format(game.startTime, 'HH:mm')}">Time</td></tr>
-    <tr><th>Description</th><td th:text="${game.description}">Description</td></tr>
-    <tr><th>Capacity</th><td th:text="${game.capacity}">Capacity</td></tr>
-    <tr><th>Price pp</th><td th:text="${game.pricePerPerson}">Price</td></tr>
-    <tr><th>State</th><td th:text="${game.state}">State</td></tr>
-    <tr><th>Owner</th>
-        <td>
-            <a th:href="@{/players/{id}(id=${game.owner.id})}"
-               th:text="${game.owner.name}">
-                Owner
+<nav class="navbar maroon">
+    <a class="navbar-brand" href="/">SportRadar</a>
+    <div class="navbar-right">
+        <th:block th:if="${currentUser != null}">
+            <a th:href="@{/profile}" style="text-decoration:none">
+                <div class="avatar-circle"><span th:text="${#strings.substring(currentUser.name,0,1)}">U</span></div>
             </a>
-        </td>
-    </tr>
-</table>
+            <form th:action="@{/logout}" method="post" style="margin:0">
+                <button class="btn-nav">Log out</button>
+            </form>
+        </th:block>
+        <th:block th:if="${currentUser == null}">
+            <button class="btn-nav" onclick="location.href='/login'">Log in</button>
+        </th:block>
+    </div>
+</nav>
 
-<h2>Players</h2>
-<table border="1" cellpadding="4">
-    <thead>
-    <tr>
-        <th>#</th>
-        <th>Name</th>
-        <th>Login</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="p, stat : ${game.players}">
-        <td th:text="${stat.count}">1</td>
-        <td>
-            <a th:href="@{/players/{id}(id=${p.id})}"
-               th:text="${p.name}">
-                Player Name
-            </a>
-        </td>
-        <td th:text="${p.login}">login</td>
-    </tr>
-    <tr th:if="${#lists.isEmpty(game.players)}">
-        <td colspan="3">No players yet</td>
-    </tr>
-    </tbody>
-</table>
-
-<div id="map"></div>
-
-<div>
-    <span th:if="${currentUser != null}">
-        <form th:if="${!game.players.contains(currentUser)}"
-              th:action="@{/games/{id}/join(id=${game.id})}"
-              method="post"
-              style="display:inline">
-            <button type="submit">Join Game</button>
-        </form>
-
-        <form th:if="${game.players.contains(currentUser)}"
-              th:action="@{/games/{id}/resign(id=${game.id})}"
-              method="post"
-              style="display:inline">
-            <button type="submit">Resign Game</button>
-        </form>
-    </span>
-
-    <span th:if="${currentUser == null}">
-        <em>Please <a th:href="@{/login}">log in</a> to join or resign.</em>
-    </span>
+<div class="page-banner maroon">
+    <h1 th:text="${game.title}">Game Title</h1>
+    <p>
+        <span th:text="${game.sport.name}">Sport</span>
+        <span th:if="${game.state != null}"> ·
+            <span th:text="${game.state}">State</span>
+        </span>
+    </p>
 </div>
 
-<p>
-    <button type="button" onclick="location.href='/games'">← Back to Games</button>
-</p>
+<div class="inner-page">
+
+    <!-- Info tiles -->
+    <div class="info-grid">
+        <div class="info-tile">
+            <div class="label">Location</div>
+            <div class="value" th:text="${game.location.name}">—</div>
+        </div>
+        <div class="info-tile">
+            <div class="label">Address</div>
+            <div class="value" th:text="${game.location.address}">—</div>
+        </div>
+        <div class="info-tile">
+            <div class="label">Date</div>
+            <div class="value" th:text="${game.startDate}">—</div>
+        </div>
+        <div class="info-tile">
+            <div class="label">Time</div>
+            <div class="value" th:text="${#temporals.format(game.startTime,'HH:mm')}">—</div>
+        </div>
+        <div class="info-tile">
+            <div class="label">Capacity</div>
+            <div class="value" th:text="${#sets.size(game.players) + ' / ' + game.capacity}">—</div>
+        </div>
+        <div class="info-tile">
+            <div class="label">Price</div>
+            <div class="value"
+                 th:text="${game.pricePerPerson != null and game.pricePerPerson > 0}
+                            ? ${game.pricePerPerson} + ' PLN'
+                            : 'Free'">—</div>
+        </div>
+        <div class="info-tile" th:if="${game.description != null and !game.description.isBlank()}">
+            <div class="label">Description</div>
+            <div class="value" style="font-size:.9rem" th:text="${game.description}">—</div>
+        </div>
+        <div class="info-tile">
+            <div class="label">Owner</div>
+            <div class="value">
+                <a th:href="@{/players/{id}(id=${game.owner.id})}" th:text="${game.owner.name}">—</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-cols">
+
+        <!-- Players -->
+        <div class="s-card">
+            <h2>Players (
+                <span th:text="${#sets.size(game.players)}">0</span> /
+                <span th:text="${game.capacity}">10</span>)
+            </h2>
+            <div th:if="${#sets.isEmpty(game.players)}" class="empty" style="padding:20px 0">No players yet.</div>
+            <div th:each="p, stat : ${game.players}" class="player-row">
+                <span class="player-num" th:text="${stat.count}">1</span>
+                <a class="player-name" th:href="@{/players/{id}(id=${p.id})}" th:text="${p.name}">Name</a>
+                <span style="font-size:.8rem;color:var(--muted)" th:text="${p.login}">login</span>
+            </div>
+
+            <!-- Actions -->
+            <div style="margin-top:20px">
+                <th:block th:if="${currentUser != null}">
+                    <form th:if="${!game.players.contains(currentUser)}"
+                          th:action="@{/games/{id}/join(id=${game.id})}" method="post">
+                        <button class="btn-submit green" type="submit" style="width:auto;padding:11px 28px">Join Game</button>
+                    </form>
+                    <form th:if="${game.players.contains(currentUser)}"
+                          th:action="@{/games/{id}/resign(id=${game.id})}" method="post">
+                        <button class="btn-submit" type="submit"
+                                style="width:auto;padding:11px 28px;background:var(--danger)">Resign</button>
+                    </form>
+                </th:block>
+                <p th:if="${currentUser == null}" style="color:var(--muted);font-size:.9rem">
+                    <a th:href="@{/login}" style="color:var(--green);font-weight:600">Log in</a> to join or resign.
+                </p>
+            </div>
+        </div>
+
+        <!-- Map -->
+        <div class="s-card" style="padding:0;overflow:hidden">
+            <div id="map" class="map-box" style="height:360px;border-radius:var(--radius)"></div>
+        </div>
+
+    </div>
+
+    <a href="/games" class="back-link">&#8592; Back to Games</a>
+</div>
 
 <script th:inline="javascript">
     /*<![CDATA[*/
-    const lat = [[${game.location.latitude}]];
-    const lng = [[${game.location.longitude}]];
+    const lat     = [[${game.location.latitude}]];
+    const lng     = [[${game.location.longitude}]];
     const locName = [[${#strings.escapeJavaScript(game.location.name)}]];
-
     const map = L.map('map').setView([lat, lng], 15);
-
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
-
-    L.marker([lat, lng]).addTo(map)
-        .bindPopup(locName)
-        .openPopup();
+    L.marker([lat, lng]).addTo(map).bindPopup(locName).openPopup();
     /*]]>*/
 </script>
-
 </body>
 </html>

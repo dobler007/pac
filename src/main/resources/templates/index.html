@@ -3,44 +3,127 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>SportRadar – Home</title>
-    <link th:href="@{https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css}" rel="stylesheet"/>
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY"></script>
+    <title>SportRadar</title>
+    <link rel="stylesheet" th:href="@{/css/Style.css}">
 </head>
 <body>
 
-<nav class="navbar navbar-light bg-light">
-    <div class="container-fluid">
-        <span class="navbar-brand">SportRadar</span>
-        <div>
-      <span th:if="${currentUser != null}">
-        Welcome,
-        <a th:href="@{/profile}" class="btn btn-link p-0 align-baseline" th:text="${currentUser.name}">User</a>
-        !
-        <form th:action="@{/logout}" method="post" class="d-inline">
-          <button class="btn btn-outline-secondary btn-sm">Log Out</button>
-        </form>
-      </span>
-            <span th:if="${currentUser == null}">
-        <button class="btn btn-outline-primary btn-sm" onclick="location.href='/login'">Log In</button>
-        <button class="btn btn-outline-secondary btn-sm" onclick="location.href='/register'">Register</button>
-      </span>
-        </div>
+<!-- ── Navbar ──────────────────────────────────────────────────────────── -->
+<nav class="navbar green">
+    <a class="navbar-brand" href="/">SportRadar</a>
+    <div class="navbar-right">
+        <th:block th:if="${currentUser != null}">
+            <a th:href="@{/profile}" style="text-decoration:none">
+                <div class="avatar-circle" title="Profile">
+                    <span th:text="${#strings.substring(currentUser.name,0,1)}">U</span>
+                </div>
+            </a>
+            <form th:action="@{/logout}" method="post" style="margin:0">
+                <button class="btn-nav">Log out</button>
+            </form>
+        </th:block>
+        <th:block th:if="${currentUser == null}">
+            <div class="avatar-circle">👤</div>
+            <button class="btn-nav" onclick="location.href='/login'">Log in</button>
+            <button class="btn-nav outlined" onclick="location.href='/register'">Register</button>
+        </th:block>
     </div>
 </nav>
 
-<div class="container mt-5 text-center">
-    <div class="mb-3">
-        <label for="cityInput" class="form-label">Choose city:</label>
-        <input type="text" id="cityInput" class="form-control" placeholder="Enter city" value="Warsaw"/>
-    </div>
-    <div class="btn-group" role="group">
-        <button class="btn btn-primary" onclick="location.href='/events'">Events</button>
-        <button class="btn btn-primary" onclick="location.href='/games'">Games</button>
-        <button class="btn btn-primary" onclick="location.href='/games/new'">Post Game</button>
-    </div>
-</div>
+<div class="page">
 
-<script th:src="@{https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js}"></script>
+    <!-- ── Hero ──────────────────────────────────────────────────────────── -->
+    <div class="hero">
+        <div class="hero-text">
+            <h1 class="hero-title">SportRadar</h1>
+            <p class="hero-subtitle">Join or create local games!</p>
+
+            <div style="margin-bottom:20px">
+                <label style="font-size:.85rem;color:var(--muted);display:block;margin-bottom:4px">Choose city</label>
+                <input id="cityInput" type="text" placeholder="Enter city" value="Warsaw"
+                       style="width:220px;padding:9px 14px;border-radius:999px;border:1.5px solid var(--border);font-size:.9rem;"/>
+            </div>
+
+            <div class="hero-actions">
+                <button class="btn-action dark"  onclick="location.href='/events'">Events</button>
+                <button class="btn-action dark"  onclick="location.href='/events/new'">Post an Event</button>
+                <button class="btn-action green" onclick="location.href='/games'">Games</button>
+                <button class="btn-action dark"  onclick="location.href='/games/new'">Post game</button>
+            </div>
+        </div>
+
+        <div class="hero-art">
+            <!-- Colourful sports‑player silhouettes -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 200" width="420" height="200" aria-hidden="true">
+                <!-- Figure 1: purple — arms raised -->
+                <g fill="#7C5CBF">
+                    <ellipse cx="45" cy="28" rx="13" ry="14"/>
+                    <path d="M32 44 Q45 38 58 44 L62 110 Q45 106 28 110 Z"/>
+                    <path d="M32 50 L10 35 M58 50 L80 35"/>
+                    <path d="M36 108 L28 170 M54 108 L62 170"/>
+                </g>
+                <!-- Figure 2: orange — kicking -->
+                <g fill="#E87722" transform="translate(75,0)">
+                    <ellipse cx="45" cy="28" rx="13" ry="14"/>
+                    <path d="M32 44 Q45 38 58 44 L60 105 Q45 102 30 105 Z"/>
+                    <path d="M32 52 L8 60 M58 52 L82 45"/>
+                    <path d="M36 103 L22 165 M54 103 L70 160"/>
+                </g>
+                <!-- Figure 3: red — jumping -->
+                <g fill="#D94040" transform="translate(150,-10)">
+                    <ellipse cx="45" cy="28" rx="13" ry="14"/>
+                    <path d="M32 44 Q45 38 58 44 L60 105 Q45 102 30 105 Z"/>
+                    <path d="M33 48 L12 28 M57 48 L78 28"/>
+                    <path d="M36 103 L20 158 M54 103 L68 155"/>
+                </g>
+                <!-- Figure 4: yellow‑green — sprinting -->
+                <g fill="#8BBF2E" transform="translate(225,5)">
+                    <ellipse cx="45" cy="28" rx="13" ry="14"/>
+                    <path d="M32 44 Q45 38 58 44 L58 105 Q45 102 32 105 Z"/>
+                    <path d="M34 54 L14 45 M56 50 L76 60"/>
+                    <path d="M38 103 L26 163 M52 103 L60 158"/>
+                </g>
+                <!-- Figure 5: teal — defending -->
+                <g fill="#2A9D8F" transform="translate(300,-5)">
+                    <ellipse cx="45" cy="28" rx="13" ry="14"/>
+                    <path d="M32 44 Q45 38 58 44 L60 106 Q45 103 30 106 Z"/>
+                    <path d="M33 52 L8 65 M57 52 L82 40"/>
+                    <path d="M36 104 L24 165 M54 104 L66 162"/>
+                </g>
+                <!-- Figure 6: blue — celebrating -->
+                <g fill="#2E86DE" transform="translate(360,0)">
+                    <ellipse cx="30" cy="28" rx="12" ry="13"/>
+                    <path d="M18 42 Q30 36 42 42 L44 105 Q30 102 16 105 Z"/>
+                    <path d="M19 48 L4 25 M41 48 L56 25"/>
+                    <path d="M22 103 L14 165 M38 103 L46 162"/>
+                </g>
+                <!-- Ball -->
+                <circle cx="198" cy="185" r="12" fill="#1A1A1A"/>
+                <path d="M192 180 Q198 175 204 180 Q204 188 198 192 Q192 188 192 180Z" fill="white" opacity=".4"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- ── Upcoming games ────────────────────────────────────────────────── -->
+    <div th:if="${games != null and !#lists.isEmpty(games)}">
+        <h2 class="section-title">Upcoming Games</h2>
+        <div class="card-grid">
+            <a class="game-card"
+               th:each="g, stat : ${games}"
+               th:classappend="${stat.index % 3 == 1} ? 'dark' : 'light'"
+               th:href="@{/games/{id}(id=${g.id})}">
+                <div class="sport-label" th:text="${g.sport.name}">Sport</div>
+                <div>
+                    <div class="card-meta">
+                        <div class="mini-avatar">🏃</div>
+                        <span th:text="${#sets.size(g.players) + '/' + g.capacity}">0/10</span>
+                    </div>
+                    <div class="card-location" th:text="${g.location.name}">Location</div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+</div>
 </body>
 </html>

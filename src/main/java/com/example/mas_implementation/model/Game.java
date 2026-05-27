@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -44,4 +46,10 @@ public class Game {
     private Player owner;
     @Enumerated(EnumType.STRING)
     private State state;
+    @ManyToOne
+    @JoinColumn(name = "event_id")
+    private Event event;
+    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Goal> goals = new ArrayList<>();
 }

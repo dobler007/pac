@@ -42,9 +42,20 @@ public class GameController {
     }
 
     @GetMapping
-    public String listGames(Model model) {
-        List<Game> games = gameService.findUpcomingGames();
+    public String listGames(@RequestParam(required = false) Long sportId,
+                            Model model, HttpSession session) {
+        List<Game> games = sportId != null
+                ? gameRepository.findUpcomingGamesBySport(sportId)
+                : gameService.findUpcomingGames();
         model.addAttribute("games", games);
+        model.addAttribute("sports", sportRepository.findAll());
+        model.addAttribute("selectedSportId", sportId);
+
+        Long currentId = (Long) session.getAttribute("currentUserId");
+        if (currentId != null) {
+            playerRepository.findById(currentId)
+                    .ifPresent(p -> model.addAttribute("currentUser", p));
+        }
         return "games";
     }
 

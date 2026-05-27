@@ -11,12 +11,21 @@ public interface EventRepository extends CrudRepository<Event, Long> {
     @Override
     @EntityGraph(attributePaths = {
             "creators",
-            "eventSponsors"
+            "eventSponsors",
+            "sport",
+            "location",
+            "games",
+            "games.sport",
+            "games.location",
+            "games.players",
+            "games.owner"
     })
     Optional<Event> findById(Long id);
 
     @EntityGraph(attributePaths = {
-            "creators"
+            "creators",
+            "sport",
+            "location"
     })
     List<Event> findAll();
 }

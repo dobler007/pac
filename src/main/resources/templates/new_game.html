@@ -2,139 +2,152 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <title>Post Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Post Game – SportRadar</title>
+    <link rel="stylesheet" th:href="@{/css/Style.css}">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <style>
-        #map { height: 400px; width: 100%; margin-bottom: 10px; }
-    </style>
 </head>
 <body>
 
-<h1>Post Game</h1>
-
-<form th:action="@{/games}" method="post">
-
-    <label>Title:
-        <input name="title" required/>
-    </label><br/>
-
-    <label>Sport:
-        <select name="sportId" required>
-            <option th:each="s : ${sports}"
-                    th:value="${s.id}"
-                    th:text="${s.name}">
-            </option>
-        </select>
-    </label><br/>
-
-    <label>Game Date:
-        <input type="date" name="startDate" required/>
-    </label><br/>
-
-    <label>Game Time:
-        <input type="time" name="startTime" required/>
-    </label><br/>
-
-    <hr/>
-
-    <label>Choose existing location (optional):
-        <select name="locationId" id="locationId">
-            <option value="">-- Custom (type address below) --</option>
-            <option th:each="l : ${locations}"
-                    th:value="${l.id}"
-                    th:text="${l.name} + ' — ' + ${l.address}">
-            </option>
-        </select>
-    </label><br/>
-
-    <div id="customLocationBlock">
-        <label>Location Name:
-            <input name="locationName" id="locationName" placeholder="e.g., Central Park"/>
-        </label><br/>
-
-        <label>Address:
-            <input type="text" name="address" id="address" placeholder="Enter address"/>
-        </label><br/>
-
-        <div id="map"></div>
-
-        <input type="hidden" name="latitude" id="latitude"/>
-        <input type="hidden" name="longitude" id="longitude"/>
+<nav class="navbar maroon">
+    <a class="navbar-brand" href="/">SportRadar</a>
+    <div class="navbar-right">
+        <th:block th:if="${currentUser != null}">
+            <a th:href="@{/profile}" style="text-decoration:none">
+                <div class="avatar-circle"><span th:text="${#strings.substring(currentUser.name,0,1)}">U</span></div>
+            </a>
+            <form th:action="@{/logout}" method="post" style="margin:0">
+                <button class="btn-nav">Log out</button>
+            </form>
+        </th:block>
     </div>
+</nav>
 
-    <label>Description:
-        <textarea name="description"></textarea>
-    </label><br/>
+<div class="page-banner maroon">
+    <h1>Post a Game</h1>
+    <p>Fill in the details and pin the location on the map</p>
+</div>
 
-    <label>Capacity:
-        <input type="number" name="capacity" required/>
-    </label><br/>
+<div class="inner-page">
+    <form th:action="@{/games}" method="post">
+        <div class="form-page-cols">
 
-    <label>Price Per Person:
-        <input type="number" name="pricePerPerson"/>
-    </label><br/>
+            <!-- LEFT -->
+            <div>
+                <div class="s-card">
+                    <h2>Game details</h2>
+                    <div class="field">
+                        <label>Title *</label>
+                        <input name="title" required placeholder="e.g., Sunday Football"/>
+                    </div>
+                    <div class="field">
+                        <label>Sport *</label>
+                        <select name="sportId" required>
+                            <option th:each="s : ${sports}" th:value="${s.id}" th:text="${s.name}">Sport</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="field">
+                            <label>Date *</label>
+                            <input type="date" name="startDate" required/>
+                        </div>
+                        <div class="field">
+                            <label>Time *</label>
+                            <input type="time" name="startTime" required/>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="field">
+                            <label>Capacity *</label>
+                            <input type="number" name="capacity" required min="2" placeholder="14"/>
+                        </div>
+                        <div class="field">
+                            <label>Price per person (PLN)</label>
+                            <input type="number" name="pricePerPerson" min="0" placeholder="0 = free"/>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label>Description</label>
+                        <textarea name="description" placeholder="Any extra details…"></textarea>
+                    </div>
+                </div>
 
-    <button type="submit">Create</button>
-</form>
+                <div class="s-card">
+                    <h2>Location</h2>
+                    <div class="field">
+                        <label>Existing location (optional)</label>
+                        <select name="locationId" id="locationId">
+                            <option value="">— pin a custom location on the map →</option>
+                            <option th:each="l : ${locations}" th:value="${l.id}"
+                                    th:text="${l.name} + ' — ' + ${l.address}">Location</option>
+                        </select>
+                    </div>
+                    <div id="customBlock">
+                        <div class="field">
+                            <label>Location name</label>
+                            <input name="locationName" id="locationName" placeholder="e.g., City Pitch"/>
+                        </div>
+                        <div class="field">
+                            <label>Address</label>
+                            <input type="text" name="address" id="address" placeholder="Type to geocode…"/>
+                        </div>
+                        <input type="hidden" name="latitude"  id="latitude"/>
+                        <input type="hidden" name="longitude" id="longitude"/>
+                    </div>
+                </div>
 
-<button onclick="location.href='/games'">Back to Games</button>
+                <div style="display:flex;gap:12px;align-items:center">
+                    <button class="btn-submit maroon" type="submit" style="width:auto;padding:13px 32px">Post Game</button>
+                    <a href="/games" class="back-link">Cancel</a>
+                </div>
+            </div>
+
+            <!-- RIGHT: map -->
+            <div style="position:sticky;top:20px">
+                <div class="s-card" style="padding:0;overflow:hidden;">
+                    <div id="map" style="height:520px;border-radius:var(--radius)"></div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
 
 <script>
     const locationSelect = document.getElementById('locationId');
-    const customBlock = document.getElementById('customLocationBlock');
+    const customBlock    = document.getElementById('customBlock');
+    const addressEl      = document.getElementById('address');
+    const latEl          = document.getElementById('latitude');
+    const lngEl          = document.getElementById('longitude');
 
-    const locationNameInput = document.getElementById('locationName');
-    const addressInput = document.getElementById('address');
-    const latInput = document.getElementById('latitude');
-    const lngInput = document.getElementById('longitude');
+    function toggle() { customBlock.style.display = locationSelect.value ? 'none' : 'block'; }
+    toggle();
+    locationSelect.addEventListener('change', toggle);
 
-    function setCustomRequired(on) {
-        locationNameInput.required = on;
-        addressInput.required = on;
-        latInput.required = on;
-        lngInput.required = on;
-    }
-
-    function toggleCustomBlock() {
-        const usingExisting = locationSelect.value && locationSelect.value.trim() !== "";
-        customBlock.style.display = usingExisting ? 'none' : 'block';
-        setCustomRequired(!usingExisting);
-    }
-
-    toggleCustomBlock();
-    locationSelect.addEventListener('change', toggleCustomBlock);
-
-    const map = L.map('map').setView([52.2297, 21.0122], 13);
-
+    const map = L.map('map').setView([52.2297, 21.0122], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
     let marker;
-
     map.on('click', function(e) {
-        const { lat, lng } = e.latlng;
+        const {lat, lng} = e.latlng;
         if (marker) map.removeLayer(marker);
         marker = L.marker([lat, lng]).addTo(map);
-        latInput.value = lat;
-        lngInput.value = lng;
+        latEl.value = lat; lngEl.value = lng;
     });
 
-    addressInput.addEventListener('change', async function() {
-        const addr = this.value;
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addr)}`);
+    addressEl.addEventListener('change', async function() {
+        const res  = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(this.value)}`);
         const data = await res.json();
         if (data.length > 0) {
-            const { lat, lon } = data[0];
+            const {lat, lon} = data[0];
             map.setView([lat, lon], 15);
             if (marker) map.removeLayer(marker);
             marker = L.marker([lat, lon]).addTo(map);
-            latInput.value = lat;
-            lngInput.value = lon;
+            latEl.value = lat; lngEl.value = lon;
         }
     });
 </script>
-
 </body>
 </html>

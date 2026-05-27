@@ -14,7 +14,7 @@ import java.util.List;
 @Service
 @Transactional
 public class GameServiceImpl implements GameService {
-//.
+
     private final GameRepository gameRepository;
     private final PlayerRepository playerRepository;
 

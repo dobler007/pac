@@ -2,33 +2,79 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <title>All Games</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Games – SportRadar</title>
+    <link rel="stylesheet" th:href="@{/css/Style.css}">
 </head>
 <body>
 
-<h1>Upcoming Games</h1>
+<!-- ── Navbar ──────────────────────────────────────────────────────────── -->
+<nav class="navbar maroon">
+    <a class="navbar-brand" href="/">SportRadar</a>
+    <div class="navbar-right">
+        <th:block th:if="${currentUser != null}">
+            <a th:href="@{/profile}" style="text-decoration:none">
+                <div class="avatar-circle" title="Profile">
+                    <span th:text="${#strings.substring(currentUser.name,0,1)}">U</span>
+                </div>
+            </a>
+        </th:block>
+        <th:block th:if="${currentUser == null}">
+            <button class="btn-nav" onclick="location.href='/login'">Log in</button>
+            <button class="btn-nav outlined" onclick="location.href='/register'">Register</button>
+        </th:block>
+    </div>
+</nav>
 
-<ul>
-    <li th:each="g : ${games}">
-        <a th:href="@{/games/{id}(id=${g.id})}"
-           th:text="${g.title}">Game Title</a>
+<div class="page">
 
-        — <span th:text="${g.sport.name}">Sport</span>
+    <!-- ── Sport filter chips ────────────────────────────────────────────── -->
+    <div class="filter-bar">
+        <span class="filter-icon">&#9663;</span>
+        <a class="chip" th:classappend="${selectedSportId == null} ? 'active'" href="/games">All</a>
+        <a class="chip"
+           th:each="s : ${sports}"
+           th:classappend="${selectedSportId != null and selectedSportId == s.id} ? 'active'"
+           th:href="@{/games(sportId=${s.id})}"
+           th:text="${s.name}">Sport</a>
+    </div>
 
-        @ <span th:text="${g.location.name}">Location</span>
+    <!-- ── Game cards ─────────────────────────────────────────────────────── -->
+    <div class="card-grid">
+        <a class="game-card-list"
+           th:each="g : ${games}"
+           th:href="@{/games/{id}(id=${g.id})}">
 
-        <br/>
+            <div class="card-top">
+                <div class="card-info">
+                    <div class="card-location-name" th:text="${g.location.name}">Location</div>
+                    <div class="card-price"
+                         th:text="${g.pricePerPerson != null and g.pricePerPerson > 0}
+                                    ? ${g.pricePerPerson} + ' pln'
+                                    : 'free'">free</div>
+                    <div class="card-desc"
+                         th:if="${g.description != null and !g.description.isBlank()}"
+                         th:text="${#strings.abbreviate(g.description, 40)}">desc</div>
+                    <div class="card-date"
+                         th:if="${g.startDate != null}"
+                         th:text="${#temporals.format(g.startDate, 'dd/MM')}">01/06</div>
+                </div>
+                <button class="arrow-btn" tabindex="-1">&#8594;</button>
+            </div>
 
-        📅 <span th:text="${g.startDate}">2025-01-01</span>
-        ⏰ <span th:text="${#temporals.format(g.startTime, 'HH:mm')}">18:00</span>
-    </li>
-</ul>
+            <div class="card-footer-row">
+                <span th:text="${#sets.size(g.players) + '/' + g.capacity}">0/10</span>
+                <span th:text="${#sets.size(g.waitList) + ' reserve'}">0 reserve</span>
+            </div>
+        </a>
+    </div>
 
-<p th:if="${#lists.isEmpty(games)}">
-    No upcoming games.
-</p>
+    <div class="empty" th:if="${#lists.isEmpty(games)}">No upcoming games.</div>
 
-<button onclick="location.href='/'">Home</button>
+    <div style="margin-top:32px">
+        <a href="/" style="color:var(--muted); font-size:.9rem">&#8592; Back to main page</a>
+    </div>
 
+</div>
 </body>
 </html>
