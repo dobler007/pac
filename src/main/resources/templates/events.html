@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Events – SportRadar</title>
+    <link rel="stylesheet" th:href="@{/css/Style.css}">
+</head>
+<body>
+
+<nav class="navbar green">
+    <a class="navbar-brand" href="/">SportRadar</a>
+    <div class="navbar-right">
+        <th:block th:if="${currentUser != null}">
+            <a th:href="@{/profile}" style="text-decoration:none">
+                <div class="avatar-circle"><span th:text="${#strings.substring(currentUser.name,0,1)}">U</span></div>
+            </a>
+            <form th:action="@{/logout}" method="post" style="margin:0">
+                <button class="btn-nav">Log out</button>
+            </form>
+        </th:block>
+        <th:block th:if="${currentUser == null}">
+            <button class="btn-nav" onclick="location.href='/login'">Log in</button>
+            <button class="btn-nav outlined" onclick="location.href='/register'">Register</button>
+        </th:block>
+    </div>
+</nav>
+
+<div class="inner-page">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+        <h1 style="font-size:1.8rem;font-weight:800">Upcoming Events</h1>
+        <a href="/events/new" class="btn-submit green" style="width:auto;padding:10px 22px;font-size:.88rem;text-decoration:none">+ Post Event</a>
+    </div>
+
+    <div class="card-grid">
+        <a class="event-card"
+           th:each="e : ${events}"
+           th:href="@{/events/{id}(id=${e.id})}">
+            <div class="event-name" th:text="${e.name}">Event Name</div>
+            <div class="event-meta">
+                <span th:if="${e.sport != null}">🏅 <span th:text="${e.sport.name}">Sport</span></span>
+                <span th:if="${e.location != null}">📍 <span th:text="${e.location.name}">Location</span></span>
+                <span th:if="${e.startDate != null}">📅 <span th:text="${e.startDate}">Date</span></span>
+            </div>
+            <div th:if="${e.description != null and !e.description.isBlank()}"
+                 style="font-size:.83rem;color:var(--muted);margin-top:2px"
+                 th:text="${#strings.abbreviate(e.description, 80)}">desc</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+                <span style="font-size:.82rem;color:var(--green);font-weight:600"
+                      th:text="${#lists.size(e.games)} + ' games'">0 games</span>
+                <span style="font-size:.82rem;color:var(--muted)"
+                      th:if="${e.capacity > 0}"
+                      th:text="${e.capacity} + ' capacity'">—</span>
+            </div>
+        </a>
+    </div>
+
+    <div class="empty" th:if="${#lists.isEmpty(events)}">No events yet. <a href="/events/new" style="color:var(--green)">Create the first one!</a></div>
+
+    <a href="/" class="back-link" style="margin-top:32px">&#8592; Back to main page</a>
+</div>
+
+</body>
+</html>
