@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title th:text="${location.name} + ' – SportRadar'">Location</title>
     <link rel="stylesheet" th:href="@{/css/Style.css}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
 <body>
 
@@ -31,28 +33,60 @@
 </div>
 
 <div class="inner-page">
+
+    <!-- Average rating summary — uses controller-computed avgStars -->
+    <div th:if="${reviewCount > 0}"
+         style="margin-bottom:24px;display:flex;align-items:center;gap:16px">
+        <div style="font-size:2rem;font-weight:800;color:var(--maroon)"
+             th:text="${#numbers.formatDecimal(avgStars,1,1)} + ' ★'">— ★</div>
+        <div style="color:var(--muted);font-size:.88rem"
+             th:text="${reviewCount} + ' review' + (${reviewCount} == 1 ? '' : 's')">0 reviews</div>
+    </div>
+
     <div class="detail-cols">
 
-        <!-- Left: review form + reviews -->
+        <!-- LEFT: write/edit review -->
         <div>
+            <!-- Map card -->
+            <div th:if="${location.latitude != null and location.longitude != null}"
+                 class="s-card" style="padding:0;overflow:hidden;margin-bottom:20px">
+                <div id="map" style="height:260px;border-radius:var(--radius)"></div>
+            </div>
+
             <div class="s-card" th:if="${currentUser != null}">
-                <h2 th:text="${myReview != null} ? 'Update Your Review' : 'Leave a Review'">Review</h2>
+                <h2 th:text="${myReview != null} ? 'Your Review' : 'Leave a Review'">Review</h2>
                 <form th:action="@{/locations/{id}/review(id=${location.id})}" method="post">
+                    <!-- pass returnTo through the form so we redirect back after submit -->
+                    <input th:if="${returnTo != null}" type="hidden" name="returnTo" th:value="${returnTo}"/>
+
                     <div class="field">
-                        <label>Stars (1–5)</label>
-                        <select name="stars" required>
-                            <option th:each="i : ${#numbers.sequence(1,5)}"
-                                    th:value="${i}" th:text="${i} + ' ★'"
-                                    th:selected="${myReview != null and myReview.stars == i}"></option>
-                        </select>
+                        <label>Rating</label>
+                        <div style="display:flex;gap:6px;margin-top:2px" id="starPicker">
+                            <th:block th:each="i : ${#numbers.sequence(1,5)}">
+                                <label style="cursor:pointer;font-size:1.5rem;color:#ccc"
+                                       th:id="'star-label-' + ${i}">
+                                    <!-- Pre-select existing rating, or default to 5 stars for new reviews -->
+                                    <input type="radio" name="stars" th:value="${i}" style="display:none"
+                                           th:checked="${(myReview == null and i == 5) or (myReview != null and myReview.stars == i)}"/>
+                                    ★
+                                </label>
+                            </th:block>
+                        </div>
                     </div>
-                    <div class="field">
-                        <label>Your review</label>
-                        <textarea name="description" rows="3" maxlength="1000"
+
+                    <div class="field" style="margin-top:12px">
+                        <label>Comment <span style="color:var(--muted);font-size:.8rem">(optional)</span></label>
+                        <textarea name="description" rows="4" maxlength="1000"
+                                  placeholder="Share your experience…"
                                   th:text="${myReview != null ? myReview.description : ''}"></textarea>
                     </div>
+
                     <button class="btn-submit green" type="submit"
                             th:text="${myReview != null} ? 'Update Review' : 'Submit Review'">Submit</button>
+
+                    <a th:if="${returnTo != null}"
+                       th:href="${returnTo}"
+                       class="back-link" style="margin-left:14px">← Back</a>
                 </form>
             </div>
 
@@ -63,27 +97,86 @@
             </div>
         </div>
 
-        <!-- Right: reviews list -->
+        <!-- RIGHT: all reviews -->
         <div class="s-card">
-            <h2>Reviews (<span th:text="${#lists.size(reviews)}">0</span>)</h2>
-            <div th:if="${#lists.isEmpty(reviews)}" class="empty" style="padding:20px 0">No reviews yet.</div>
-            <div th:each="r, iter : ${reviews}" class="player-row" style="flex-direction:column;align-items:flex-start;gap:4px">
-                <div style="display:flex;justify-content:space-between;width:100%">
-                    <a class="player-name" th:href="@{/players/{id}(id=${r.user.id})}" th:text="${r.user.name}">User</a>
-                    <span style="font-size:.85rem;color:var(--muted)" th:text="${r.stars} + ' ★'">5 ★</span>
+            <h2>Reviews (<span th:text="${reviewCount}">0</span>)</h2>
+
+            <div th:if="${reviewCount == 0}" class="empty" style="padding:20px 0">
+                No reviews yet. Be the first!
+            </div>
+
+            <div th:each="r : ${reviews}" style="padding:14px 0;border-bottom:1px solid var(--border)">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+                    <div>
+                        <a class="player-name" style="font-weight:600"
+                           th:href="@{/players/{id}(id=${r.user.id})}"
+                           th:text="${r.user.name}">User</a>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px">
+                        <span style="color:#f5a623;font-size:1rem"
+                              th:text="${#strings.repeat('★', r.stars)} + ${#strings.repeat('☆', 5 - r.stars)}">★★★★★</span>
+                        <!-- admin delete -->
+                        <form th:if="${isAdmin}"
+                              th:action="@{/admin/reviews/{id}/delete(id=${r.id})}"
+                              method="post" style="margin:0">
+                            <button type="submit"
+                                    style="background:var(--danger);color:#fff;padding:3px 10px;font-size:.75rem;border-radius:6px;border:none;cursor:pointer">
+                                Delete
+                            </button>
+                        </form>
+                    </div>
                 </div>
-                <p style="font-size:.85rem;color:var(--muted);margin:0" th:text="${r.description}">Review text</p>
-                <form th:if="${isAdmin}"
-                      th:action="@{/admin/reviews/{id}/delete(id=${r.id})}" method="post">
-                    <button type="submit" style="background:var(--danger);color:#fff;padding:4px 12px;font-size:.78rem;border-radius:6px">Delete</button>
-                </form>
+                <p th:if="${r.description != null and !r.description.isBlank()}"
+                   style="font-size:.88rem;color:var(--muted);margin:0"
+                   th:text="${r.description}">Review text</p>
             </div>
         </div>
 
     </div>
 
-    <a href="/locations" class="back-link">&#8592; Back to Locations</a>
+    <!-- back links -->
+    <div style="margin-top:8px;display:flex;gap:20px;flex-wrap:wrap">
+        <a th:if="${returnTo != null}" th:href="${returnTo}" class="back-link">&#8592; Back</a>
+        <a href="/locations" class="back-link">&#8592; All locations</a>
+    </div>
+
 </div>
 
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // ── Map ──────────────────────────────────────────────────────────────────
+    const mapLat = [[${location.latitude}]];
+    const mapLng = [[${location.longitude}]];
+    if (mapLat !== null && mapLng !== null && document.getElementById('map')) {
+        const map = L.map('map').setView([mapLat, mapLng], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+        const locName = [[${#strings.escapeJavaScript(location.name)}]];
+        L.marker([mapLat, mapLng]).addTo(map).bindPopup(locName).openPopup();
+    }
+
+    // ── Star picker ──────────────────────────────────────────────────────────
+    const labels = document.querySelectorAll('#starPicker label');
+    function highlight(upTo) {
+        labels.forEach((lbl, i) => {
+            lbl.style.color = i < upTo ? '#f5a623' : '#ccc';
+        });
+    }
+    // Initial state from checked radio (will be 5 for new reviews, existing for edits)
+    let checkedIdx = [...labels].findIndex(l => l.querySelector('input[type=radio]').checked);
+    if (checkedIdx < 0) checkedIdx = 4; // fallback: highlight all 5
+    highlight(checkedIdx + 1);
+
+    labels.forEach((lbl, i) => {
+        lbl.addEventListener('click', () => { highlight(i + 1); });
+        lbl.addEventListener('mouseover', () => { highlight(i + 1); });
+    });
+    document.getElementById('starPicker').addEventListener('mouseleave', () => {
+        const checked = [...labels].findIndex(l => l.querySelector('input[type=radio]').checked);
+        highlight(checked + 1);
+    });
+    /*]]>*/
+</script>
 </body>
 </html>

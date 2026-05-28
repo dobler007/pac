@@ -17,37 +17,61 @@
         <div class="auth-logo">Create account 🏃</div>
         <p class="auth-subtitle">Join SportRadar and start playing</p>
 
-        <form action="/register" method="post">
+        <form th:action="@{/register}" th:object="${registerForm}" method="post" novalidate>
+
             <div class="form-row">
                 <div class="field">
-                    <label>Username</label>
-                    <input name="login" required minlength="2" maxlength="20" placeholder="cool_player"/>
+                    <label>Username *</label>
+                    <input th:field="*{login}"
+                           th:classappend="${#fields.hasErrors('login')} ? 'input-error'"
+                           placeholder="cool_player"/>
+                    <span class="field-error" th:if="${#fields.hasErrors('login')}"
+                          th:errors="*{login}">Error</span>
                 </div>
                 <div class="field">
-                    <label>Password</label>
-                    <input name="password" type="password" required minlength="2" placeholder="••••••••"/>
+                    <label>Password *</label>
+                    <input th:field="*{password}" type="password"
+                           th:classappend="${#fields.hasErrors('password')} ? 'input-error'"
+                           placeholder="••••••••"/>
+                    <span class="field-error" th:if="${#fields.hasErrors('password')}"
+                          th:errors="*{password}">Error</span>
                 </div>
             </div>
 
             <div class="field">
-                <label>Full name</label>
-                <input name="name" required placeholder="Jan Kowalski"/>
+                <label>Full name *</label>
+                <input th:field="*{name}"
+                       th:classappend="${#fields.hasErrors('name')} ? 'input-error'"
+                       placeholder="Jan Kowalski"/>
+                <span class="field-error" th:if="${#fields.hasErrors('name')}"
+                      th:errors="*{name}">Error</span>
             </div>
 
             <div class="form-row">
                 <div class="field">
-                    <label>Email</label>
-                    <input name="email" type="email" required placeholder="jan@email.com"/>
+                    <label>Email *</label>
+                    <input th:field="*{email}" type="email"
+                           th:classappend="${#fields.hasErrors('email')} ? 'input-error'"
+                           placeholder="jan@email.com"/>
+                    <span class="field-error" th:if="${#fields.hasErrors('email')}"
+                          th:errors="*{email}">Error</span>
                 </div>
                 <div class="field">
-                    <label>Phone number</label>
-                    <input name="phoneNumber" required minlength="3" placeholder="+48 000 000 000"/>
+                    <label>Phone</label>
+                    <input th:field="*{phoneNumber}"
+                           th:classappend="${#fields.hasErrors('phoneNumber')} ? 'input-error'"
+                           placeholder="+48 600 123 456"/>
+                    <span class="field-error" th:if="${#fields.hasErrors('phoneNumber')}"
+                          th:errors="*{phoneNumber}">Error</span>
                 </div>
             </div>
 
             <div class="field">
-                <label>Date of birth</label>
-                <input name="birthdate" type="date" required/>
+                <label>Date of birth *</label>
+                <input th:field="*{birthdate}" type="date"
+                       th:classappend="${#fields.hasErrors('birthdate')} ? 'input-error'"/>
+                <span class="field-error" th:if="${#fields.hasErrors('birthdate')}"
+                      th:errors="*{birthdate}">Error</span>
             </div>
 
             <button class="btn-submit green" type="submit">Create Account</button>

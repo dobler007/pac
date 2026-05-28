@@ -28,6 +28,13 @@
 <div class="page-banner green">
     <h1 th:text="${player.name}">Player Name</h1>
     <p th:text="'@' + ${player.login}">@username</p>
+    <a th:if="${isOwnProfile}"
+       href="/profile/edit"
+       style="display:inline-block;margin-top:12px;background:rgba(255,255,255,.18);
+              color:#fff;padding:7px 20px;border-radius:20px;font-size:.85rem;
+              text-decoration:none;font-weight:600;border:1.5px solid rgba(255,255,255,.4)">
+        ✏ Edit Profile
+    </a>
 </div>
 
 <div class="inner-page">
@@ -112,7 +119,14 @@
             <div th:each="g : ${player.games}" class="player-row">
                 <div style="flex:1">
                     <div style="font-weight:600" th:text="${g.title}">Game</div>
-                    <div style="font-size:.8rem;color:var(--muted)" th:text="${g.sport.name} + ' · ' + ${g.startDate}">Sport</div>
+                    <div style="font-size:.8rem;color:var(--muted)">
+                        <span th:text="${g.sport.name}">Sport</span>
+                        <span th:if="${g.startDate != null}"> · <span th:text="${g.startDate}">Date</span></span>
+                        <span th:if="${g.location != null}"> ·
+                            <a th:href="@{/locations/{id}(id=${g.location.id}, returnTo='/players/' + ${player.id})}"
+                               style="color:var(--green)" th:text="${g.location.name}">Location</a>
+                        </span>
+                    </div>
                 </div>
                 <a th:href="@{/games/{id}(id=${g.id})}"
                    style="font-size:.82rem;color:var(--green);font-weight:600;text-decoration:none">View →</a>

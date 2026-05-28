@@ -43,7 +43,11 @@
     <div class="info-grid">
         <div class="info-tile">
             <div class="label">Location</div>
-            <div class="value" th:text="${game.location.name}">—</div>
+            <div class="value">
+                <a th:href="@{/locations/{id}(id=${game.location.id})}"
+                   style="color:var(--green);font-weight:600"
+                   th:text="${game.location.name}">—</a>
+            </div>
         </div>
         <div class="info-tile">
             <div class="label">Address</div>
@@ -96,21 +100,74 @@
             </div>
 
             <!-- Actions -->
-            <div style="margin-top:20px">
+            <div style="margin-top:20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center">
                 <th:block th:if="${currentUser != null}">
-                    <form th:if="${!game.players.contains(currentUser)}"
-                          th:action="@{/games/{id}/join(id=${game.id})}" method="post">
-                        <button class="btn-submit green" type="submit" style="width:auto;padding:11px 28px">Join Game</button>
-                    </form>
+
+                    <!-- Already in the game → Resign -->
                     <form th:if="${game.players.contains(currentUser)}"
                           th:action="@{/games/{id}/resign(id=${game.id})}" method="post">
                         <button class="btn-submit" type="submit"
-                                style="width:auto;padding:11px 28px;background:var(--danger)">Resign</button>
+                                style="width:auto;padding:11px 28px;background:var(--danger)">
+                            Resign
+                        </button>
                     </form>
+
+                    <!-- On the waitlist → Leave Waitlist + position badge -->
+                    <th:block th:if="${onWaitList}">
+                        <span style="font-size:.88rem;color:var(--muted)">
+                            You're #<strong th:text="${waitPosition}">?</strong> on the waitlist
+                        </span>
+                        <form th:action="@{/games/{id}/waitlist/leave(id=${game.id})}" method="post">
+                            <button class="btn-submit" type="submit"
+                                    style="width:auto;padding:9px 20px;font-size:.85rem;background:var(--muted)">
+                                Leave Waitlist
+                            </button>
+                        </form>
+                    </th:block>
+
+                    <!-- Game is full but player not in game or waitlist → Join Waitlist -->
+                    <form th:if="${isFull and !game.players.contains(currentUser) and !onWaitList}"
+                          th:action="@{/games/{id}/join(id=${game.id})}" method="post">
+                        <button class="btn-submit" type="submit"
+                                style="width:auto;padding:11px 28px;background:var(--maroon)">
+                            Join Waitlist
+                        </button>
+                    </form>
+
+                    <!-- Spot available and not yet in game or waitlist → Join Game -->
+                    <form th:if="${!isFull and !game.players.contains(currentUser) and !onWaitList}"
+                          th:action="@{/games/{id}/join(id=${game.id})}" method="post">
+                        <button class="btn-submit green" type="submit" style="width:auto;padding:11px 28px">
+                            Join Game
+                        </button>
+                    </form>
+
                 </th:block>
-                <p th:if="${currentUser == null}" style="color:var(--muted);font-size:.9rem">
+
+                <p th:if="${currentUser == null}" style="color:var(--muted);font-size:.9rem;margin:0">
                     <a th:href="@{/login}" style="color:var(--green);font-weight:600">Log in</a> to join or resign.
                 </p>
+
+                <!-- Review location -->
+                <a th:href="@{/locations/{lid}(lid=${game.location.id}, returnTo='/games/' + ${game.id})}"
+                   class="btn-submit dark"
+                   style="width:auto;padding:11px 22px;font-size:.88rem;text-decoration:none">
+                    ★ Review Location
+                </a>
+            </div>
+
+            <!-- Waitlist list (visible when non-empty) -->
+            <div th:if="${!game.waitList.isEmpty()}" style="margin-top:20px">
+                <h3 style="font-size:.85rem;font-weight:700;color:var(--muted);
+                           text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">
+                    Waitlist (<span th:text="${game.waitList.size()}">0</span>)
+                </h3>
+                <div th:each="p, stat : ${game.waitList}" class="player-row"
+                     style="padding:6px 0;border-top:1px solid var(--border)">
+                    <span class="player-num" th:text="${stat.count}">1</span>
+                    <a class="player-name" th:href="@{/players/{id}(id=${p.id})}" th:text="${p.name}">Name</a>
+                    <span style="font-size:.8rem;color:var(--muted)" th:text="${p.login}">login</span>
+                </div>
             </div>
         </div>
 
@@ -129,11 +186,23 @@
     const lat     = [[${game.location.latitude}]];
     const lng     = [[${game.location.longitude}]];
     const locName = [[${#strings.escapeJavaScript(game.location.name)}]];
-    const map = L.map('map').setView([lat, lng], 15);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-    L.marker([lat, lng]).addTo(map).bindPopup(locName).openPopup();
+    if (lat !== null && lng !== null) {
+        const map = L.map('map').setView([lat, lng], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+        L.marker([lat, lng]).addTo(map).bindPopup(locName).openPopup();
+    } else {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+            mapEl.style.display = 'flex';
+            mapEl.style.alignItems = 'center';
+            mapEl.style.justifyContent = 'center';
+            mapEl.style.color = 'var(--muted)';
+            mapEl.style.fontSize = '.9rem';
+            mapEl.textContent = 'No coordinates available for this location.';
+        }
+    }
     /*]]>*/
 </script>
 </body>

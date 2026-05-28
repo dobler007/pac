@@ -1,8 +1,7 @@
 package com.example.mas_implementation.web;
 
-import com.example.mas_implementation.model.Player;
 import com.example.mas_implementation.model.Review;
-import com.example.mas_implementation.repository.PlayerRepository;
+import com.example.mas_implementation.repository.AdminRepository;
 import com.example.mas_implementation.repository.ReviewRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
@@ -13,18 +12,17 @@ import org.springframework.web.bind.annotation.*;
 public class AdminReviewController {
 
     private final ReviewRepository reviewRepo;
-    private final PlayerRepository playerRepo;
+    private final AdminRepository adminRepo;
 
-    public AdminReviewController(ReviewRepository reviewRepo, PlayerRepository playerRepo) {
+    public AdminReviewController(ReviewRepository reviewRepo, AdminRepository adminRepo) {
         this.reviewRepo = reviewRepo;
-        this.playerRepo = playerRepo;
+        this.adminRepo  = adminRepo;
     }
 
     private boolean isAdmin(HttpSession session) {
         Long currentId = (Long) session.getAttribute("currentUserId");
         if (currentId == null) return false;
-        Player current = playerRepo.findById(currentId).orElse(null);
-        return current instanceof com.example.mas_implementation.model.IAdmin;
+        return adminRepo.findById(currentId).isPresent();
     }
 
     @PostMapping("/{id}/delete")
@@ -34,7 +32,6 @@ public class AdminReviewController {
         if (r == null) return "redirect:/locations";
         Long locationId = r.getLocation() != null ? r.getLocation().getId() : null;
         reviewRepo.delete(r);
-        if (locationId == null) return "redirect:/locations";
-        return "redirect:/locations/" + locationId;
+        return locationId != null ? "redirect:/locations/" + locationId : "redirect:/locations";
     }
 }

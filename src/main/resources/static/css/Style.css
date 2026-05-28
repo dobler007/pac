@@ -554,3 +554,59 @@ th { color: var(--muted); font-weight: 600; }
 .btn-score:hover { opacity: .8; }
 .btn-score.add { background: var(--green); color: #fff; }
 .btn-score.rem { background: var(--bg); border: 1.5px solid var(--border); color: var(--text); }
+
+/* ── Form validation ──────────────────────────────────────────────────────── */
+.field-error {
+    color: var(--danger);
+    font-size: .78rem;
+    margin-top: 3px;
+}
+.input-error {
+    border-color: var(--danger) !important;
+    background: #fff5f5 !important;
+}
+.error-banner {
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    border-radius: var(--radius-sm);
+    color: var(--danger);
+    font-size: .88rem;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+}
+
+/* ── Pagination ───────────────────────────────────────────────────────────── */
+.pagination {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 24px 20px 8px;
+    flex-wrap: wrap;
+}
+.page-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    border-radius: 10px;
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--text);
+    background: var(--card-light);
+    border: 1.5px solid var(--border);
+    text-decoration: none;
+    transition: background .15s, border-color .15s;
+}
+.page-btn:hover { background: var(--bg); border-color: var(--maroon); text-decoration: none; }
+.page-btn.active {
+    background: var(--maroon);
+    color: #fff;
+    border-color: var(--maroon);
+}
+.page-btn.disabled {
+    color: var(--muted);
+    pointer-events: none;
+    opacity: .45;
+}

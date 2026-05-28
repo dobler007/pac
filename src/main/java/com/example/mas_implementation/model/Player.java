@@ -8,6 +8,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.MapKeyColumn;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -29,6 +31,14 @@ import java.util.stream.DoubleStream;
 @AllArgsConstructor
 @SuperBuilder
 @PrimaryKeyJoinColumn(name = "id")
+@NamedEntityGraph(
+        name = "Player.full",
+        attributeNodes = {
+                @NamedAttributeNode("games"),
+                @NamedAttributeNode("skillRatings"),
+                @NamedAttributeNode("behaviorRatings")
+        }
+)
 public class Player extends User {
 
     @ElementCollection

@@ -8,7 +8,7 @@ public interface GameService {
     Game findGameById(Long gameId);
     void joinGame(Long gameId, Long playerId);
     void resignGame(Long gameId, Long playerId);
+    void leaveWaitlist(Long gameId, Long playerId);
     Game saveGame(Game game);
     List<Game> findUpcomingGames();
-
 }

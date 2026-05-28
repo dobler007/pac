@@ -37,7 +37,9 @@ public class Game {
             joinColumns = @JoinColumn(name = "game_id"),
             inverseJoinColumns = @JoinColumn(name = "player_id")
     )
-    private Set<Player> waitList = new HashSet<>();
+    @jakarta.persistence.OrderColumn(name = "position")
+    @Builder.Default
+    private List<Player> waitList = new ArrayList<>();
     @ManyToOne(optional = false)
     @JoinColumn(name = "location_id", nullable = false)
     private Location location;

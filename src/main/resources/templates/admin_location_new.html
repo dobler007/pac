@@ -2,40 +2,101 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <title>Admin - Add Location</title>
-    <link th:href="@{https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css}" rel="stylesheet"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Add Location – SportRadar</title>
+    <link rel="stylesheet" th:href="@{/css/Style.css}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
-<body class="container py-4">
+<body>
 
-<h1>Admin - Add Location</h1>
-
-<form action="/admin/locations" method="post" class="card p-3">
-    <div class="mb-2">
-        <label class="form-label">Name</label>
-        <input class="form-control" name="name" required/>
+<nav class="navbar maroon">
+    <a class="navbar-brand" href="/">SportRadar</a>
+    <div class="navbar-right">
+        <th:block th:if="${currentUser != null}">
+            <a th:href="@{/profile}" style="text-decoration:none">
+                <div class="avatar-circle"><span th:text="${#strings.substring(currentUser.name,0,1)}">U</span></div>
+            </a>
+        </th:block>
     </div>
+</nav>
 
-    <div class="mb-2">
-        <label class="form-label">Address</label>
-        <input class="form-control" name="address" required/>
-    </div>
+<div class="page-banner maroon">
+    <h1>Add Location</h1>
+    <p>Pin the location on the map and fill in the details</p>
+</div>
 
-    <div class="row g-2 mb-2">
-        <div class="col-md-6">
-            <label class="form-label">Latitude</label>
-            <input class="form-control" name="latitude" type="number" step="any" required/>
+<div class="inner-page">
+    <form action="/admin/locations" method="post">
+        <div class="form-page-cols">
+            <!-- LEFT -->
+            <div class="s-card">
+                <h2>Location details</h2>
+                <div class="field">
+                    <label>Name *</label>
+                    <input name="name" required placeholder="e.g., City Stadium"/>
+                </div>
+                <div class="field">
+                    <label>Address *</label>
+                    <input name="address" id="address" required placeholder="Type to geocode on map…"/>
+                </div>
+                <div class="form-row">
+                    <div class="field">
+                        <label>Latitude *</label>
+                        <input name="latitude" id="latitude" type="number" step="any" required placeholder="52.2297"/>
+                    </div>
+                    <div class="field">
+                        <label>Longitude *</label>
+                        <input name="longitude" id="longitude" type="number" step="any" required placeholder="21.0122"/>
+                    </div>
+                </div>
+                <div style="display:flex;gap:12px;align-items:center;margin-top:8px">
+                    <button class="btn-submit maroon" type="submit" style="width:auto;padding:13px 32px">Create Location</button>
+                    <a href="/admin/locations" class="back-link">Cancel</a>
+                </div>
+            </div>
+
+            <!-- RIGHT: map -->
+            <div style="position:sticky;top:20px">
+                <div class="s-card" style="padding:0;overflow:hidden">
+                    <div id="map" style="height:420px;border-radius:var(--radius)"></div>
+                </div>
+            </div>
         </div>
-        <div class="col-md-6">
-            <label class="form-label">Longitude</label>
-            <input class="form-control" name="longitude" type="number" step="any" required/>
-        </div>
-    </div>
+    </form>
+</div>
 
-    <button class="btn btn-primary" type="submit">Create</button>
-</form>
+<script>
+    const addressEl = document.getElementById('address');
+    const latEl     = document.getElementById('latitude');
+    const lngEl     = document.getElementById('longitude');
 
-<button class="btn btn-link mt-3" onclick="location.href='/admin/locations'">← Back</button>
+    const map = L.map('map').setView([52.2297, 21.0122], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
 
-<script th:src="@{https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js}"></script>
+    let marker;
+    map.on('click', function(e) {
+        const {lat, lng} = e.latlng;
+        if (marker) map.removeLayer(marker);
+        marker = L.marker([lat, lng]).addTo(map);
+        latEl.value = lat.toFixed(6);
+        lngEl.value = lng.toFixed(6);
+    });
+
+    addressEl.addEventListener('change', async function() {
+        const res  = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(this.value)}`);
+        const data = await res.json();
+        if (data.length > 0) {
+            const {lat, lon} = data[0];
+            map.setView([lat, lon], 15);
+            if (marker) map.removeLayer(marker);
+            marker = L.marker([lat, lon]).addTo(map);
+            latEl.value = parseFloat(lat).toFixed(6);
+            lngEl.value = parseFloat(lon).toFixed(6);
+        }
+    });
+</script>
 </body>
 </html>

@@ -22,10 +22,12 @@ public class GameServiceImpl implements GameService {
         this.gameRepository = gameRepository;
         this.playerRepository = playerRepository;
     }
+
     @Override
     public List<Game> findUpcomingGames() {
         return gameRepository.findUpcomingGames();
     }
+
     @Override
     public List<Game> findAllGames() {
         return (List<Game>) gameRepository.findAll();
@@ -42,11 +44,25 @@ public class GameServiceImpl implements GameService {
         Game game = findGameById(gameId);
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new EntityNotFoundException("Player not found"));
-        if (player.getGames().contains(game)) {
-            return;
+
+        // Already in the game
+        boolean alreadyIn = game.getPlayers().stream()
+                .anyMatch(p -> p.getId().equals(playerId));
+        // Already on the waitlist
+        boolean alreadyWaiting = game.getWaitList().stream()
+                .anyMatch(p -> p.getId().equals(playerId));
+
+        if (alreadyIn || alreadyWaiting) return;
+
+        if (game.getPlayers().size() < game.getCapacity()) {
+            // Spot available — join directly
+            player.getGames().add(game);
+            playerRepository.save(player);
+        } else {
+            // Game is full — add to waitlist queue
+            game.getWaitList().add(player);
+            gameRepository.save(game);
         }
-        player.getGames().add(game);
-        playerRepository.save(player);
     }
 
     @Override
@@ -54,8 +70,32 @@ public class GameServiceImpl implements GameService {
         Game game = findGameById(gameId);
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new EntityNotFoundException("Player not found"));
-        player.getGames().remove(game);
-        playerRepository.save(player);
+
+        boolean inGame     = game.getPlayers().stream().anyMatch(p -> p.getId().equals(playerId));
+        boolean inWaitlist = game.getWaitList().stream().anyMatch(p -> p.getId().equals(playerId));
+
+        if (inGame) {
+            player.getGames().removeIf(g -> g.getId().equals(gameId));
+            playerRepository.save(player);
+
+            // Promote the first person on the waitlist
+            if (!game.getWaitList().isEmpty()) {
+                Player next = game.getWaitList().remove(0);
+                next.getGames().add(game);
+                playerRepository.save(next);
+                gameRepository.save(game);
+            }
+        } else if (inWaitlist) {
+            game.getWaitList().removeIf(p -> p.getId().equals(playerId));
+            gameRepository.save(game);
+        }
+    }
+
+    @Override
+    public void leaveWaitlist(Long gameId, Long playerId) {
+        Game game = findGameById(gameId);
+        game.getWaitList().removeIf(p -> p.getId().equals(playerId));
+        gameRepository.save(game);
     }
 
     @Override

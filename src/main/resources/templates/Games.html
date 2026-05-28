@@ -8,7 +8,6 @@
 </head>
 <body>
 
-<!-- ── Navbar ──────────────────────────────────────────────────────────── -->
 <nav class="navbar maroon">
     <a class="navbar-brand" href="/">SportRadar</a>
     <div class="navbar-right">
@@ -28,18 +27,66 @@
 
 <div class="page">
 
-    <!-- ── Sport filter chips ────────────────────────────────────────────── -->
-    <div class="filter-bar">
-        <span class="filter-icon">&#9663;</span>
-        <a class="chip" th:classappend="${selectedSportId == null} ? 'active'" href="/games">All</a>
-        <a class="chip"
-           th:each="s : ${sports}"
-           th:classappend="${selectedSportId != null and selectedSportId == s.id} ? 'active'"
-           th:href="@{/games(sportId=${s.id})}"
-           th:text="${s.name}">Sport</a>
+    <!-- ── Filters ──────────────────────────────────────────────────────────── -->
+    <form id="gameFilter" action="/games" method="get">
+
+        <!-- Search + date + free row -->
+        <div class="filter-bar" style="flex-wrap:wrap;gap:10px;padding:14px 20px">
+            <input type="search" name="search"
+                   placeholder="Search by title…"
+                   th:value="${search}"
+                   style="flex:1;min-width:160px;padding:8px 14px;border-radius:20px;
+                          border:1.5px solid var(--border);font-size:.9rem;background:var(--card-light)"/>
+
+            <input type="date" name="date"
+                   th:value="${selectedDate}"
+                   style="padding:8px 12px;border-radius:20px;border:1.5px solid var(--border);
+                          font-size:.88rem;background:var(--card-light)"/>
+
+            <!-- Free-only toggle chip -->
+            <label class="chip" th:classappend="${freeOnly} ? ' active'"
+                   style="cursor:pointer;display:flex;align-items:center;gap:5px">
+                <input type="checkbox" name="freeOnly" value="true"
+                       th:checked="${freeOnly}" style="display:none"
+                       onchange="document.getElementById('gameFilter').submit()"/>
+                🆓 Free only
+            </label>
+
+            <!-- Hidden sportId — set by sport chip JS below -->
+            <input type="hidden" id="sportIdInput" name="sportId" th:value="${selectedSportId}"/>
+
+            <button type="submit"
+                    class="btn-submit maroon"
+                    style="width:auto;padding:8px 22px;font-size:.88rem;border-radius:20px">
+                Search
+            </button>
+            <a href="/games"
+               style="font-size:.85rem;color:var(--muted);text-decoration:none;align-self:center">
+                ✕ Clear
+            </a>
+        </div>
+
+        <!-- Sport chips -->
+        <div class="filter-bar">
+            <span class="filter-icon">&#9663;</span>
+            <button type="button" onclick="selectSport('')"
+                    class="chip" th:classappend="${selectedSportId == null} ? ' active'">All</button>
+            <button type="button"
+                    th:each="s : ${sports}"
+                    th:onclick="|selectSport('${s.id}')|"
+                    class="chip"
+                    th:classappend="${selectedSportId != null and selectedSportId == s.id} ? ' active'"
+                    th:text="${s.name}">Sport</button>
+        </div>
+    </form>
+
+    <!-- Results count -->
+    <div style="padding:0 20px 4px;color:var(--muted);font-size:.82rem"
+         th:if="${!#lists.isEmpty(games)}"
+         th:text="${#lists.size(games)} + ' game' + (${#lists.size(games)} == 1 ? '' : 's') + ' found'">
     </div>
 
-    <!-- ── Game cards ─────────────────────────────────────────────────────── -->
+    <!-- ── Game cards ────────────────────────────────────────────────────────── -->
     <div class="card-grid">
         <a class="game-card-list"
            th:each="g : ${games}"
@@ -47,34 +94,100 @@
 
             <div class="card-top">
                 <div class="card-info">
-                    <div class="card-location-name" th:text="${g.location.name}">Location</div>
+                    <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;
+                                letter-spacing:.5px;color:var(--muted);margin-bottom:2px"
+                         th:text="${g.sport.name}">Sport</div>
+                    <div class="card-location-name" th:text="${g.title}">Title</div>
+                    <div style="font-size:.82rem;color:var(--muted)" th:text="${g.location.name}">Location</div>
                     <div class="card-price"
                          th:text="${g.pricePerPerson != null and g.pricePerPerson > 0}
-                                    ? ${g.pricePerPerson} + ' pln'
-                                    : 'free'">free</div>
+                                    ? ${g.pricePerPerson} + ' PLN'
+                                    : 'Free'">Free</div>
                     <div class="card-desc"
                          th:if="${g.description != null and !g.description.isBlank()}"
-                         th:text="${#strings.abbreviate(g.description, 40)}">desc</div>
+                         th:text="${#strings.abbreviate(g.description, 60)}">desc</div>
                     <div class="card-date"
                          th:if="${g.startDate != null}"
-                         th:text="${#temporals.format(g.startDate, 'dd/MM')}">01/06</div>
+                         th:text="${#temporals.format(g.startDate, 'EEE, dd MMM')}">Mon, 01 Jun</div>
                 </div>
                 <button class="arrow-btn" tabindex="-1">&#8594;</button>
             </div>
 
             <div class="card-footer-row">
-                <span th:text="${#sets.size(g.players) + '/' + g.capacity}">0/10</span>
-                <span th:text="${#sets.size(g.waitList) + ' reserve'}">0 reserve</span>
+                <span th:text="${#sets.size(g.players)} + ' / ' + ${g.capacity} + ' players'">0/10</span>
+                <span th:if="${g.waitList.size() > 0}"
+                      style="color:var(--maroon);font-weight:600;font-size:.8rem"
+                      th:text="${g.waitList.size()} + ' on waitlist'">0 on waitlist</span>
+                <span th:if="${g.players.size() >= g.capacity and g.waitList.size() == 0}"
+                      style="color:var(--maroon);font-size:.8rem;font-weight:600">Full</span>
             </div>
         </a>
     </div>
 
-    <div class="empty" th:if="${#lists.isEmpty(games)}">No upcoming games.</div>
+    <div class="empty" th:if="${#lists.isEmpty(games)}">
+        <span th:if="${(search != null and !#strings.isEmpty(search)) or selectedDate != null or freeOnly or selectedSportId != null}">
+            No games match your filters. <a href="/games" style="color:var(--green)">Clear filters</a>
+        </span>
+        <span th:unless="${(search != null and !#strings.isEmpty(search)) or selectedDate != null or freeOnly or selectedSportId != null}">
+            No upcoming games yet.
+        </span>
+    </div>
+
+    <!-- ── Pagination ───────────────────────────────────────────────────────── -->
+    <div class="pagination" th:if="${totalPages > 1}">
+
+        <!-- Prev -->
+        <a class="page-btn"
+           th:classappend="${currentPage == 0} ? ' disabled'"
+           th:href="@{/games(page=${currentPage - 1},
+                           sportId=${selectedSportId},
+                           search=${search},
+                           date=${selectedDate},
+                           freeOnly=${freeOnly ? true : null})}">&#8592; Prev</a>
+
+        <!-- Page numbers: always show first, last, and ±2 from current -->
+        <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+            <!-- Ellipsis gap before a hidden range -->
+            <span th:if="${i > 0 and i != totalPages - 1
+                           and #numbers.abs(i - currentPage) > 2
+                           and ((i == 1 and currentPage > 3) or (i == totalPages - 2 and currentPage < totalPages - 4))}"
+                  style="color:var(--muted);padding:0 4px">…</span>
+
+            <a class="page-btn"
+               th:if="${i == 0 or i == totalPages - 1 or #numbers.abs(i - currentPage) <= 2}"
+               th:classappend="${i == currentPage} ? ' active'"
+               th:text="${i + 1}"
+               th:href="@{/games(page=${i},
+                               sportId=${selectedSportId},
+                               search=${search},
+                               date=${selectedDate},
+                               freeOnly=${freeOnly ? true : null})}">1</a>
+        </th:block>
+
+        <!-- Next -->
+        <a class="page-btn"
+           th:classappend="${currentPage == totalPages - 1} ? ' disabled'"
+           th:href="@{/games(page=${currentPage + 1},
+                           sportId=${selectedSportId},
+                           search=${search},
+                           date=${selectedDate},
+                           freeOnly=${freeOnly ? true : null})}">Next &#8594;</a>
+
+        <span style="color:var(--muted);font-size:.8rem;margin-left:8px"
+              th:text="'(' + ${totalGames} + ' total)'"></span>
+    </div>
 
     <div style="margin-top:32px">
-        <a href="/" style="color:var(--muted); font-size:.9rem">&#8592; Back to main page</a>
+        <a href="/" style="color:var(--muted);font-size:.9rem">&#8592; Back to main page</a>
     </div>
 
 </div>
+
+<script>
+    function selectSport(id) {
+        document.getElementById('sportIdInput').value = id;
+        document.getElementById('gameFilter').submit();
+    }
+</script>
 </body>
 </html>

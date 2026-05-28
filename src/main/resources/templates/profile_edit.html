@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Edit Profile – SportRadar</title>
+    <link rel="stylesheet" th:href="@{/css/Style.css}">
+</head>
+<body>
+
+<nav class="navbar green">
+    <a class="navbar-brand" href="/">SportRadar</a>
+    <div class="navbar-right">
+        <a th:href="@{/profile}" style="text-decoration:none">
+            <div class="avatar-circle">
+                <span th:text="${#strings.substring(currentUser.name,0,1)}">U</span>
+            </div>
+        </a>
+        <form th:action="@{/logout}" method="post" style="margin:0">
+            <button class="btn-nav">Log out</button>
+        </form>
+    </div>
+</nav>
+
+<div class="page-banner green">
+    <h1>Edit Profile</h1>
+    <p th:text="'@' + ${player.login}">@username</p>
+</div>
+
+<div class="inner-page" style="max-width:560px">
+
+    <div class="s-card">
+        <form action="/profile/edit" method="post">
+
+            <div class="field">
+                <label>Display name *</label>
+                <input name="name" required maxlength="60"
+                       th:value="${player.name}"
+                       placeholder="Your full name"/>
+            </div>
+
+            <div class="field">
+                <label>Email *</label>
+                <input name="email" type="email" required maxlength="120"
+                       th:value="${player.email}"
+                       placeholder="you@example.com"/>
+            </div>
+
+            <div class="field">
+                <label>Phone <span style="color:var(--muted);font-size:.8rem">(optional)</span></label>
+                <input name="phoneNumber" type="tel" maxlength="30"
+                       th:value="${player.phoneNumber}"
+                       placeholder="+48 600 123 456"/>
+            </div>
+
+            <!-- Read-only fields for reference -->
+            <div class="field">
+                <label style="color:var(--muted)">Username (cannot be changed)</label>
+                <input th:value="${player.login}" disabled
+                       style="background:var(--bg);color:var(--muted);cursor:not-allowed"/>
+            </div>
+
+            <div style="display:flex;gap:12px;align-items:center;margin-top:8px">
+                <button class="btn-submit green" type="submit"
+                        style="width:auto;padding:12px 32px">Save changes</button>
+                <a href="/profile" class="back-link">Cancel</a>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+
+</body>
+</html>
