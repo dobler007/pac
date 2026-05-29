@@ -23,7 +23,6 @@
             </form>
         </th:block>
         <th:block th:if="${currentUser == null}">
-            <div class="avatar-circle">👤</div>
             <button class="btn-nav" onclick="location.href='/login'">Log in</button>
             <button class="btn-nav outlined" onclick="location.href='/register'">Register</button>
         </th:block>
@@ -52,56 +51,6 @@
             </div>
         </div>
 
-        <div class="hero-art">
-            <!-- Colourful sports‑player silhouettes -->
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 200" width="420" height="200" aria-hidden="true">
-                <!-- Figure 1: purple — arms raised -->
-                <g fill="#7C5CBF">
-                    <ellipse cx="45" cy="28" rx="13" ry="14"/>
-                    <path d="M32 44 Q45 38 58 44 L62 110 Q45 106 28 110 Z"/>
-                    <path d="M32 50 L10 35 M58 50 L80 35"/>
-                    <path d="M36 108 L28 170 M54 108 L62 170"/>
-                </g>
-                <!-- Figure 2: orange — kicking -->
-                <g fill="#E87722" transform="translate(75,0)">
-                    <ellipse cx="45" cy="28" rx="13" ry="14"/>
-                    <path d="M32 44 Q45 38 58 44 L60 105 Q45 102 30 105 Z"/>
-                    <path d="M32 52 L8 60 M58 52 L82 45"/>
-                    <path d="M36 103 L22 165 M54 103 L70 160"/>
-                </g>
-                <!-- Figure 3: red — jumping -->
-                <g fill="#D94040" transform="translate(150,-10)">
-                    <ellipse cx="45" cy="28" rx="13" ry="14"/>
-                    <path d="M32 44 Q45 38 58 44 L60 105 Q45 102 30 105 Z"/>
-                    <path d="M33 48 L12 28 M57 48 L78 28"/>
-                    <path d="M36 103 L20 158 M54 103 L68 155"/>
-                </g>
-                <!-- Figure 4: yellow‑green — sprinting -->
-                <g fill="#8BBF2E" transform="translate(225,5)">
-                    <ellipse cx="45" cy="28" rx="13" ry="14"/>
-                    <path d="M32 44 Q45 38 58 44 L58 105 Q45 102 32 105 Z"/>
-                    <path d="M34 54 L14 45 M56 50 L76 60"/>
-                    <path d="M38 103 L26 163 M52 103 L60 158"/>
-                </g>
-                <!-- Figure 5: teal — defending -->
-                <g fill="#2A9D8F" transform="translate(300,-5)">
-                    <ellipse cx="45" cy="28" rx="13" ry="14"/>
-                    <path d="M32 44 Q45 38 58 44 L60 106 Q45 103 30 106 Z"/>
-                    <path d="M33 52 L8 65 M57 52 L82 40"/>
-                    <path d="M36 104 L24 165 M54 104 L66 162"/>
-                </g>
-                <!-- Figure 6: blue — celebrating -->
-                <g fill="#2E86DE" transform="translate(360,0)">
-                    <ellipse cx="30" cy="28" rx="12" ry="13"/>
-                    <path d="M18 42 Q30 36 42 42 L44 105 Q30 102 16 105 Z"/>
-                    <path d="M19 48 L4 25 M41 48 L56 25"/>
-                    <path d="M22 103 L14 165 M38 103 L46 162"/>
-                </g>
-                <!-- Ball -->
-                <circle cx="198" cy="185" r="12" fill="#1A1A1A"/>
-                <path d="M192 180 Q198 175 204 180 Q204 188 198 192 Q192 188 192 180Z" fill="white" opacity=".4"/>
-            </svg>
-        </div>
     </div>
 
     <!-- ── Upcoming games ────────────────────────────────────────────────── -->
