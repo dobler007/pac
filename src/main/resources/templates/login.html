@@ -17,12 +17,12 @@
         <div class="auth-logo">Welcome back 👋</div>
         <p class="auth-subtitle">Log in to join or create games</p>
 
-        <!-- Global error (wrong credentials) -->
-        <div th:if="${#fields.hasGlobalErrors()}" class="error-banner">
-            <span th:each="err : ${#fields.globalErrors()}" th:text="${err}">Error</span>
-        </div>
-
         <form th:action="@{/login}" th:object="${loginForm}" method="post" novalidate>
+
+            <!-- Global error (wrong credentials) -->
+            <div th:if="${#fields.hasGlobalErrors()}" class="error-banner">
+                <span th:each="err : ${#fields.globalErrors()}" th:text="${err}">Error</span>
+            </div>
 
             <div class="field">
                 <label>Username</label>
