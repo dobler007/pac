@@ -17,10 +17,14 @@ public class GameServiceImpl implements GameService {
 
     private final GameRepository gameRepository;
     private final PlayerRepository playerRepository;
+    private final NotificationService notificationService;
 
-    public GameServiceImpl(GameRepository gameRepository, PlayerRepository playerRepository) {
+    public GameServiceImpl(GameRepository gameRepository,
+                           PlayerRepository playerRepository,
+                           NotificationService notificationService) {
         this.gameRepository = gameRepository;
         this.playerRepository = playerRepository;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -78,12 +82,13 @@ public class GameServiceImpl implements GameService {
             player.getGames().removeIf(g -> g.getId().equals(gameId));
             playerRepository.save(player);
 
-            // Promote the first person on the waitlist
+            // Promote the first person on the waitlist and notify them
             if (!game.getWaitList().isEmpty()) {
                 Player next = game.getWaitList().remove(0);
                 next.getGames().add(game);
                 playerRepository.save(next);
                 gameRepository.save(game);
+                notificationService.notifyWaitlistPromotion(next, game);
             }
         } else if (inWaitlist) {
             game.getWaitList().removeIf(p -> p.getId().equals(playerId));

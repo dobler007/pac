@@ -22,6 +22,7 @@ class GameServiceImplTest {
 
     @Mock private GameRepository gameRepository;
     @Mock private PlayerRepository playerRepository;
+    @Mock private NotificationService notificationService;
     @InjectMocks private GameServiceImpl gameService;
 
     // ── Helpers ──────────────────────────────────────────────────────────────

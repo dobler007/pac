@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -13,6 +14,7 @@
     <a class="navbar-brand" href="/">SportRadar</a>
     <div class="navbar-right">
         <th:block th:if="${currentUser != null}">
+            <a sec:authorize="hasRole('ADMIN')" class="btn-nav" th:href="@{/admin/locations}">Admin</a>
             <a th:href="@{/profile}" style="text-decoration:none">
                 <div class="avatar-circle" title="Profile">
                     <span th:text="${#strings.substring(currentUser.name,0,1)}">U</span>

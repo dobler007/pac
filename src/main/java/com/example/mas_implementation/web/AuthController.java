@@ -1,23 +1,41 @@
 package com.example.mas_implementation.web;
 
 import com.example.mas_implementation.model.Player;
-import com.example.mas_implementation.repository.PlayerRepository;
-import com.example.mas_implementation.web.dto.LoginForm;
+import com.example.mas_implementation.service.UserService;
 import com.example.mas_implementation.web.dto.RegisterForm;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
 
+import java.util.List;
+
+/**
+ * Handles registration and the login view. Authentication of the login form and logout are
+ * managed by Spring Security (see {@code SecurityConfig}); this controller only renders the
+ * login page and creates new accounts.
+ */
 @Controller
 public class AuthController {
 
-    private final PlayerRepository playerRepo;
+    private final UserService userService;
+    private final SecurityContextRepository securityContextRepository =
+            new HttpSessionSecurityContextRepository();
 
-    public AuthController(PlayerRepository playerRepo) {
-        this.playerRepo = playerRepo;
+    public AuthController(UserService userService) {
+        this.userService = userService;
     }
 
     // ── Register ─────────────────────────────────────────────────────────────
@@ -32,67 +50,44 @@ public class AuthController {
     public String doRegister(
             @Valid @ModelAttribute("registerForm") RegisterForm form,
             BindingResult result,
-            Model model,
+            HttpServletRequest request,
+            HttpServletResponse response,
             HttpSession session) {
 
-        // Bean Validation errors (blank fields, bad email, etc.)
+        // Bean Validation errors (blank fields, weak password, bad email, etc.)
         if (result.hasErrors()) {
             return "register";
         }
 
         // Username already taken
-        if (playerRepo.findByLogin(form.getLogin()).isPresent()) {
+        if (userService.isLoginTaken(form.getLogin())) {
             result.rejectValue("login", "duplicate", "Username is already taken");
             return "register";
         }
 
-        Player player = new Player();
-        player.setLogin(form.getLogin().trim());
-        player.setPassword(form.getPassword());          // plain-text; BCrypt is a future improvement
-        player.setName(form.getName().trim());
-        player.setEmail(form.getEmail().trim());
-        player.setPhoneNumber(form.getPhoneNumber() != null ? form.getPhoneNumber().trim() : null);
-        player.setBirthdate(form.getBirthdate());
+        Player player = userService.register(form);
 
-        playerRepo.save(player);
-        session.setAttribute("currentUserId", player.getId());
+        // Auto-login: establish a Spring Security context and the MVC session attribute.
+        authenticate(request, response, session, player);
 
         return "redirect:/";
     }
 
-    // ── Login ────────────────────────────────────────────────────────────────
+    // ── Login view (POST is processed by Spring Security) ─────────────────────
 
     @GetMapping("/login")
-    public String showLogin(Model model) {
-        model.addAttribute("loginForm", new LoginForm());
+    public String showLogin() {
         return "login";
     }
 
-    @PostMapping("/login")
-    public String doLogin(
-            @Valid @ModelAttribute("loginForm") LoginForm form,
-            BindingResult result,
-            HttpSession session) {
-
-        if (result.hasErrors()) {
-            return "login";
-        }
-
-        Player p = playerRepo.findByLogin(form.getLogin()).orElse(null);
-        if (p == null || !p.getPassword().equals(form.getPassword())) {
-            result.reject("auth.failed", "Incorrect username or password");
-            return "login";
-        }
-
-        session.setAttribute("currentUserId", p.getId());
-        return "redirect:/";
-    }
-
-    // ── Logout ───────────────────────────────────────────────────────────────
-
-    @PostMapping("/logout")
-    public String logout(HttpSession session) {
-        session.invalidate();
-        return "redirect:/";
+    private void authenticate(HttpServletRequest request, HttpServletResponse response,
+                              HttpSession session, Player player) {
+        UsernamePasswordAuthenticationToken auth = UsernamePasswordAuthenticationToken.authenticated(
+                player.getLogin(), null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(auth);
+        SecurityContextHolder.setContext(context);
+        securityContextRepository.saveContext(context, request, response);
+        session.setAttribute("currentUserId", player.getId());
     }
 }

@@ -23,7 +23,7 @@ class RegisterFormValidationTest {
     private RegisterForm validForm() {
         RegisterForm f = new RegisterForm();
         f.setLogin("coolplayer");
-        f.setPassword("secret123");
+        f.setPassword("Secret123");
         f.setName("Jan Kowalski");
         f.setEmail("jan@test.com");
         f.setPhoneNumber("+48600123456");
@@ -71,7 +71,15 @@ class RegisterFormValidationTest {
     @Test
     void shortPassword_causesViolation() {
         RegisterForm f = validForm();
-        f.setPassword("abc");   // less than 6 chars
+        f.setPassword("Ab1");   // less than 8 chars
+        Set<ConstraintViolation<RegisterForm>> v = validator.validate(f);
+        assertThat(v).anyMatch(cv -> cv.getPropertyPath().toString().equals("password"));
+    }
+
+    @Test
+    void passwordWithoutUppercaseOrDigit_causesViolation() {
+        RegisterForm f = validForm();
+        f.setPassword("alllowercase");   // 8+ chars but no uppercase and no digit
         Set<ConstraintViolation<RegisterForm>> v = validator.validate(f);
         assertThat(v).anyMatch(cv -> cv.getPropertyPath().toString().equals("password"));
     }

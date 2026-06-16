@@ -1,6 +1,7 @@
 package com.example.mas_implementation.repository;
 
 import com.example.mas_implementation.model.Game;
+import com.example.mas_implementation.model.State;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -61,4 +62,9 @@ public interface GameRepository extends CrudRepository<Game, Long> {
             @Param("date")     LocalDate date,
             @Param("search")   String search
     );
+
+    /** Games still marked with the given state whose scheduled day is already in the past. */
+    @Query("SELECT g FROM Game g WHERE g.state = :state AND g.startDate < :date")
+    List<Game> findByStateAndStartDateBefore(@Param("state") State state,
+                                             @Param("date") LocalDate date);
 }
